@@ -1,0 +1,13 @@
+# Sample Authors
+# Remove file or replace with your own
+
+Paul Sitoh:
+  name: Paul Sitoh
+  picture: /images/bio-photo-2.jpg
+  twitter: "@paulwizviz"
+  links:
+    - title: Linkedin
+      url: https://www.linkedin.com/in/paul-sitoh-7088b223/
+      #icon: fab fa-twitter-square
+
+

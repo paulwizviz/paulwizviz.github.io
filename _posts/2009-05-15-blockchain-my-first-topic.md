@@ -1,5 +1,6 @@
 ---
 title: "My first blockchain post"
+author: paulwizviz
 categories:
   - Blockchain
 tags:

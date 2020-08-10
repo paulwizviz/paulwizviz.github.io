@@ -5,4 +5,4 @@ permalink: /categories/blockchain/
 taxonomy: Blockchain
 ---
 
-Sample post listing for the category `Edge Case`.
+Sample post listing for the category `Blockchain`.

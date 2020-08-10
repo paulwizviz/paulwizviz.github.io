@@ -1,7 +1,7 @@
 ---
-title: "My first topic"
+title: "My first blockchain post"
 categories:
-  - blockchain
+  - Blockchain
 tags:
   - content
   - css

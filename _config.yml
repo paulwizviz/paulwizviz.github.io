@@ -90,9 +90,9 @@ defaults:
       share: true
 
 # Site Author
-author:
-  name:
-  picture:
+author: 
+  name: Paul Sitoh
+  picture: /images/me.png
   email:
   twitter:
   links:

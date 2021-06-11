@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Coding projects and pain-points</title>
+    <description>A blog about my coding projects and pain-points.</description>
+    <link>https://paulwizviz.github.io/</link>
+    <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Sat, 12 Jun 2021 13:57:58 +0100</pubDate>
+    <lastBuildDate>Sat, 12 Jun 2021 13:57:58 +0100</lastBuildDate>
+    <generator>Jekyll v3.9.0</generator>
+    
+      <item>
+        <title>A side-by-side comparison of comparison of Go and Rust projects</title>
+        <description>&lt;p&gt;TO DO&lt;/p&gt;
+</description>
+        <pubDate>Sat, 12 Jun 2021 13:52:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html</guid>
+        
+        
+        <category>Go</category>
+        
+        <category>Rust</category>
+        
+      </item>
+    
+  </channel>
+</rss>

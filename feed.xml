@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>My coding projects and pain-points</title>
-    <description>A blog about my coding projects and pain-points.</description>
+    <title>My coding projects and solutions</title>
+    <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 13 Jun 2021 00:14:31 +0100</pubDate>
-    <lastBuildDate>Sun, 13 Jun 2021 00:14:31 +0100</lastBuildDate>
+    <pubDate>Sun, 13 Jun 2021 14:04:13 +0100</pubDate>
+    <lastBuildDate>Sun, 13 Jun 2021 14:04:13 +0100</lastBuildDate>
     <generator>Jekyll v3.9.0</generator>
     
       <item>
-        <title>Go and Rust package manament -- my initial observations</title>
+        <title>Go and Rust package management -- my initial observations</title>
         <description>&lt;h2 id=&quot;about-this-post&quot;&gt;About this post&lt;/h2&gt;
 
 &lt;p&gt;In this post, I’ll share my research of package management for Go and Rust.&lt;/p&gt;

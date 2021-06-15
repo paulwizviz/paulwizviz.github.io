@@ -5,8 +5,8 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 14 Jun 2021 20:06:36 +0100</pubDate>
-    <lastBuildDate>Mon, 14 Jun 2021 20:06:36 +0100</lastBuildDate>
+    <pubDate>Tue, 15 Jun 2021 11:01:11 +0100</pubDate>
+    <lastBuildDate>Tue, 15 Jun 2021 11:01:11 +0100</lastBuildDate>
     <generator>Jekyll v3.9.0</generator>
     
       <item>
@@ -41,22 +41,6 @@
         <category>go</category>
         
         <category>rust</category>
-        
-      </item>
-    
-      <item>
-        <title>Welcome to my blog about coding</title>
-        <description>&lt;h2 id=&quot;welcome&quot;&gt;Welcome&lt;/h2&gt;
-
-&lt;p&gt;Welcome to my blog. You’ll find discussion about my coding projects.&lt;/p&gt;
-
-&lt;p&gt;For a list of projects discussed, please refer to &lt;a href=&quot;https://paulwizviz.github.io&quot;&gt;table of content&lt;/a&gt;.&lt;/p&gt;
-
-</description>
-        <pubDate>Fri, 11 Jun 2021 10:00:00 +0100</pubDate>
-        <link>https://paulwizviz.github.io/2021/06/11/welcome.html</link>
-        <guid isPermaLink="true">https://paulwizviz.github.io/2021/06/11/welcome.html</guid>
-        
         
       </item>
     

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <title>Manipulating Docker containers via Go -- working with images - My coding projects and solutions</title>
+    <meta name="author" content="Paul Sitoh" />
+    <meta name="description" content="Manipulating Docker containers via Go -- working with images" />
+    <meta name="keywords" content="Manipulating Docker containers via Go -- working with images, My coding projects and solutions, go, docker" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+    <meta content="" property="fb:app_id">
+    <meta content="My coding projects and solutions" property="og:site_name">
+
+    
+
+    
+      <meta content="Manipulating Docker containers via Go -- working with images" property="og:title">
+      <meta content="article" property="og:type">
+    
+
+    
+      <meta content="A blog about my coding projects and how I solve coding challenges." property="og:description">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html" property="og:url">
+    
+
+    
+      <meta content="2021-06-19T13:00:00+01:00" property="article:published_time">
+      <meta content="https://paulwizviz.github.io/about/" property="article:author">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/static/img/posts/golang-docker.png" property="og:image">
+    
+
+    
+      
+        <meta content="go" property="article:section">
+      
+    
+
+    
+      
+    
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@#">
+    <meta name="twitter:creator" content="@#">
+
+    
+      <meta name="twitter:title" content="Manipulating Docker containers via Go -- working with images">
+    
+
+    
+      <meta name="twitter:url" content="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html">
+    
+
+    
+      <meta name="twitter:description" content="A blog about my coding projects and how I solve coding challenges.">
+    
+
+    
+
+    <!-- Font awesome icons -->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <!-- syntax highlighting CSS -->
+    <link rel="stylesheet" href="/static/css/syntax.css">
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300italic,300,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/super-search.css">
+    <link rel="stylesheet" href="/static/css/thickbox.css">
+    <link rel="stylesheet" href="/static/css/projects.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    
+  </head>
+  <body>
+    <div class="share-page">
+      <img src="https://paulwizviz.github.io/static/img/cover.jpg" height= 50% width=100%/>
+    </div>
+    <div class="container">
+      <div class="col-sm-3">
+        <div class="fixed-condition">
+          <h1 class="author-name"><a href="/">Paul Sitoh</a></h1>
+          
+            <div class="profile-about">
+              I'm a software engineer who enjoys coding principally in Go and where necessary other languages.
+            </div>
+          
+          <div class="social">
+            <ul>
+              
+                <li><a href="https://twitter.com/paulwizviz" target="_blank"><i class="fa fa-twitter"></i></a></li>
+              
+                <li><a href="https://www.linkedin.com/in/paul-s-7088b223/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              
+                <li><a href="https://github.com/paulwizviz" target="_blank"><i class="fa fa-github"></i></a></li>
+              
+            </ul>
+          </div>
+          <div class="search" id="js-search">
+            <input type="text" placeholder="(sitemap)~$ type to search" class="search__input form-control" id="js-search__input">
+            <ul class="search__results" id="js-search__results"></ul>
+          </div>
+          <hr />
+          <ul class="sidebar-nav">
+            <strong>Navigation</strong>
+            <li><a href="/">Home</a></li>
+            
+              <li><a class="about" href="/about/">About Me</a></li>
+            
+              <li><a class="about" href="/projects/">My Projects</a></li>
+            
+          </ul>
+        </div>
+        <!-- end /.fixed-condition -->
+      </div>
+      <div class="col-sm-8 col-offset-1 main-layout">
+        <header class="post-header">
+  <h1 class="post-title">Manipulating Docker containers via Go -- working with images</h1>
+</header>
+
+<span class="time">19 Jun 2021</span>
+
+  <span class="categories">
+    &raquo; <a href="/category/go">go</a>, <a href="/category/docker">docker</a>
+  </span>
+
+
+<div class="content">
+  
+  <div class="share-page">
+    <img src="https://paulwizviz.github.io/static/img/posts/golang-docker.png"/>
+  </div>
+  
+  <div class="post"><h2 id="about-this-post">About this post</h2>
+
+<p>In this post, I’ll show you ways to manipulate docker operations directly from your Go codes as an alternative to using Docker cli and docker-compose script.</p>
+
+<p>It is beyond the scope of this post to discuss in detail Docker’s architecture. Refer to the official
+ <a href="https://docs.docker.com/get-started/overview/">Docker documentation</a> for detail.</p>
+
+<p>For the purpose of this post, Docker is a client-server application where the server is running as a daemon in your platform (Linux, macOS and Windows).</p>
+
+<p>In essence, when you work with your Go code (i.e. the client) to interact with Docker you are basically interacting with Docker server via sockets.</p>
+
+<p>There are two ways you can get your Go code to interact with Docker server. One approach is to use Docker’s
+ <a href="https://docs.docker.com/engine/api/sdk/">Go SDK</a>. The other approach is to use the <a href="https://docs.docker.com/engine/api/v1.41/">RESTFul API</a>. I’ll show you how it is done using the two approaches specifically when it comes to pulling Docker images from Docker registry.</p>
+
+<h2 id="using-go-sdk">Using Go SDK</h2>
+
+<p>The steps involve in using the SDK are:</p>
+
+<ul>
+  <li>
+    <p>STEP 1: Instantiate a Docker client;</p>
+  </li>
+  <li>
+    <p>STEP 2: Use the client to call the operations you are interested in.</p>
+  </li>
+</ul>
+
+<p>Here is the example code to pull down an image:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="k">import</span> <span class="s">"github.com/docker/docker/client"</span>
+
+<span class="c">// Instantiate a Docker client based on default docker environment variables</span>
+<span class="n">cli</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">client</span><span class="o">.</span><span class="n">NewClientWithOpts</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">FromEnv</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">WithAPIVersionNegotiation</span><span class="p">())</span>
+
+<span class="c">// Call the Image pull and in this case Docker is pulling ubuntu:latest from image repository</span>
+<span class="n">reader</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">cli</span><span class="o">.</span><span class="n">ImagePull</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">Background</span><span class="p">()</span> <span class="s">"ubuntu"</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ImagePullOptions</span><span class="p">{})</span>
+
+<span class="c">// Stream download status to console</span>
+<span class="n">io</span><span class="o">.</span><span class="n">Copy</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">Stdout</span><span class="p">,</span> <span class="n">reader</span><span class="p">)</span></code></pre></figure>
+
+<h2 id="using-docker-engine-api">Using Docker Engine API</h2>
+
+<p>In this approach, configure the Go Http client package to dial up docker socket. In the case of Linux and macOS, you can simply use unix socket as shown below:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="k">func</span> <span class="n">NewClient</span><span class="p">()</span> <span class="n">http</span><span class="o">.</span><span class="n">Client</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">http</span><span class="o">.</span><span class="n">Client</span><span class="p">{</span>
+		<span class="n">Transport</span><span class="o">:</span> <span class="o">&amp;</span><span class="n">http</span><span class="o">.</span><span class="n">Transport</span><span class="p">{</span>
+			<span class="n">DialContext</span><span class="o">:</span> <span class="k">func</span><span class="p">(</span><span class="n">_</span> <span class="n">context</span><span class="o">.</span><span class="n">Context</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="n">net</span><span class="o">.</span><span class="n">Conn</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+				<span class="k">return</span> <span class="n">net</span><span class="o">.</span><span class="n">Dial</span><span class="p">(</span><span class="s">"unix"</span><span class="p">,</span> <span class="s">"/var/run/docker.sock"</span><span class="p">)</span>
+			<span class="p">},</span>
+		<span class="p">},</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>For Windows programmers, please refer to the operating system’s equivalent.</p>
+
+<p>Next, connect your client to the Docker API.  The API to pull images is in the endpoint <a href="https://docs.docker.com/engine/api/v1.41/#operation/ImageCreate">/images/create</a>. Yes, pull and create images have the same endpoint. So it can be confusing.</p>
+
+<p>Here is the example code demonstrating operations to call the API.</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="k">func</span> <span class="n">PullImages</span><span class="p">(</span><span class="n">client</span> <span class="n">http</span><span class="o">.</span><span class="n">Client</span><span class="p">,</span> <span class="n">imageName</span> <span class="kt">string</span><span class="p">,</span> <span class="n">tag</span> <span class="kt">string</span><span class="p">)</span> <span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">ReadCloser</span><span class="p">,</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+
+	<span class="n">queryParams</span> <span class="o">:=</span> <span class="n">fmt</span><span class="o">.</span><span class="n">Sprintf</span><span class="p">(</span><span class="s">"?fromImage=%s&amp;fromSrc=-&amp;tag=%s"</span><span class="p">,</span> <span class="n">imageName</span><span class="p">,</span> <span class="n">tag</span><span class="p">)</span>
+	<span class="n">res</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">client</span><span class="o">.</span><span class="n">Post</span><span class="p">(</span><span class="n">fmt</span><span class="o">.</span><span class="n">Sprintf</span><span class="p">(</span><span class="s">"http://v1.40/images/create%s"</span><span class="p">,</span> <span class="n">queryParams</span><span class="p">),</span> <span class="s">"application/json"</span><span class="p">,</span> <span class="no">nil</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="no">nil</span><span class="p">,</span> <span class="n">err</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="n">res</span><span class="o">.</span><span class="n">Body</span><span class="p">,</span> <span class="no">nil</span>
+<span class="p">}</span></code></pre></figure>
+
+<h1 id="last-words">Last words</h1>
+
+<p>As you can see the steps involved in creating a Go base client using SDK and API is fairly straightforward.</p>
+
+<p>However, you might be asking why not just execute shell commands via Docker’s cli with Docker Compose script. Of course, you could. What I have presented here are illustrations of alternative ways to manipulate docker from Go code. It is for you to find a use case appropriate for your project. For example, you might find it useful to create native apps manipulating a few Docker containers where you might not need platforms as complex as Kubernetes to manipulate containers.</p>
+
+<p>In this post I have covered one operation, which is to pull an image. The steps involved in manipulating other operations is broadly the same except for details such as SDK arguments or API parameters settings. I’ll cover those and other Docker components in future posts.</p>
+</div>
+  <div class="share-page">
+  <span style="float: left;">Share this on &rarr;&nbsp;&nbsp;</span>
+
+  <!-- Twitter -->
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="#">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+  <!-- Facebook -->
+  <!-- <div class="fb-share-button" data-href="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html" data-layout="button_count" style="position: relative; top: -8px; left: 3px;"></div> -->
+</div>
+
+<!-- <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.6&appId=";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script> -->
+
+</div>
+
+
+  
+    
+      
+        
+          
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+            <div class="panel-body">
+              <h4>Related Posts</h4>
+              <ul>
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html">Go and Rust package management -- my initial observations</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+  
+  </ul>
+</div>
+
+
+<div class="PageNavigation">
+  
+    <a class="prev" href="/go/rust/2021/06/12/go-rust-projects.html">&laquo; Go and Rust package management -- my initial observations</a>
+  
+  
+</div>
+
+<div class="disqus-comments">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var disqus_shortname = "paulwizviz-github-io";
+    var disqus_identifier = "https://paulwizviz.github.io_Manipulating Docker containers via Go -- working with images";
+    var disqus_title = "Manipulating Docker containers via Go -- working with images";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    /* ]]> */
+  </script>
+</div>
+
+        <footer>
+          &copy; Paul Sitoh
+          
+            - <a href="https://github.com/paulwizviz">https://github.com/paulwizviz</a> - Powered by Jekyll.
+          
+          <!-- <div class="btn-github" style="float:right;">
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=star&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=fork&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+          </div> -->
+        </footer>
+      </div>
+      <!-- end /.col-sm-8 -->
+    </div>
+    <!-- end /.container -->
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/super-search.js"></script>
+    <script src="/static/js/thickbox-compressed.js"></script>
+    <script src="/static/js/projects.js"></script>
+  </body>
+</html>
+

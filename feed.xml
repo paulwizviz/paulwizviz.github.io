@@ -5,9 +5,79 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 19 Jun 2021 17:43:30 +0100</pubDate>
-    <lastBuildDate>Sat, 19 Jun 2021 17:43:30 +0100</lastBuildDate>
+    <pubDate>Wed, 30 Jun 2021 22:56:24 +0100</pubDate>
+    <lastBuildDate>Wed, 30 Jun 2021 22:56:24 +0100</lastBuildDate>
     <generator>Jekyll v3.9.0</generator>
+    
+      <item>
+        <title>Go and Rust workspace and modules -- A comparison</title>
+        <description>&lt;h2 id=&quot;about-this-post&quot;&gt;About this post&lt;/h2&gt;
+
+&lt;p&gt;It is rare, if ever, for any major project to involve only a single source file. So when you start a major software project, it is important to do so on the right foundation. A software project that is able to scale easily is one where the project is organised around modules where each module address a separate concern.&lt;/p&gt;
+
+&lt;p&gt;In this post, I am going to compare Go and Rust approach to organising projects for scaling. I’ll demonstrate, using comparable file structures, ways to organise multiple modules in a single Github repository. I’ll use the term workspace in place of the term repository to coincide with Rust terminology.&lt;/p&gt;
+
+&lt;p&gt;It is beyond the scope of this post to discuss in details Go and Rust concepts of modules and packages. Please refer to the respective language documentation for details. This blog will focus specifically on how to organise folders and files in a workspace such that Go and Rust projects are similar in layout for comparison.&lt;/p&gt;
+
+&lt;h2 id=&quot;go-workspace&quot;&gt;Go workspace&lt;/h2&gt;
+
+&lt;p&gt;It is worth noting that Go projects do not have a formal equivalence of a workspace. However, you can organise multiple Go modules around a single repository to achieve the similar effect as Rust’s workspace. The following layout is an example of a Go multiple-modules workspace.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;workspace&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;myapp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;app1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;go&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;internal&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+     &lt;span class=&quot;n&quot;&gt;mathutil&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+       &lt;span class=&quot;n&quot;&gt;multiply&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;go&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mod&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;sum&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;mylib&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;go&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mod&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;strings&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;go&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;strings_test&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;go&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In this layout, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; is a Go module for generating executables. Whereas &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mylib&lt;/code&gt; is a Go module serving as an public sharable library. By convention, because &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mylib&lt;/code&gt; is a shareable module, it has name to that can be located via a valid url. In the case of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; which is not meant to share code with external projects, a simple one word name will suffice.&lt;/p&gt;
+
+&lt;p&gt;Please refer to a working layout in my &lt;a href=&quot;https://github.com/paulwizviz/go-workspace&quot;&gt;Github repo&lt;/a&gt; for detail.&lt;/p&gt;
+
+&lt;h2 id=&quot;rust-workspace&quot;&gt;Rust workspace&lt;/h2&gt;
+
+&lt;p&gt;The equivalent layout in Rust is as follows:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;workspace&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;myapp&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;.rs&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;math&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;.rs&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Cargo&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;.toml&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;mylib&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;lib&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;.rs&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;Cargo&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;.toml&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;Cargo&lt;/span&gt;&lt;span class=&quot;py&quot;&gt;.toml&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Similar to the Go layout, you have &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; module responsible for generating an executable and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mylib&lt;/code&gt; module responsible for generating libraries that you can share locally or via a package repository.&lt;/p&gt;
+
+&lt;p&gt;Please refer to a working layout in my &lt;a href=&quot;https://github.com/paulwizviz/rust-workspace&quot;&gt;Github repo&lt;/a&gt; for detail.&lt;/p&gt;
+
+&lt;h2 id=&quot;my-observations&quot;&gt;My observations&lt;/h2&gt;
+
+&lt;p&gt;The main difference between a Go and a Rust workspace is a top level (i.e. at the workspace root) &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Cargo.toml&lt;/code&gt; package manager for latter. A Go workspace does not have a top level package manager. So there is no direct relationship between its modules. In other words, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mylib&lt;/code&gt; will not be visible to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; until the former has been pushed to the source repository and tag for Go workspace. So you can’t make changes to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;mylib&lt;/code&gt; and for &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;myapp&lt;/code&gt; to take effect at code time. In this respect, organising multiple Go modules in a single workspace may not offer much efficiency co-ordinating across modules. So the layout as presented in this post is very much a matter of personal choice.&lt;/p&gt;
+
+&lt;p&gt;The other difference is in the tools. Rust has a package management tool known as Cargo, to create the layout mentioned above and also co-ordinate dependencies between the modules during the build process. Go tools do not have feature to create “standard” layout like Cargo. Go tools (i.e. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go install&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go mod&lt;/code&gt;) manages dependencies but it is done in conjunction with source code repositories hosting the Go codes. How well the flexibity afford by Go project layout and the fix layout afforded by Rust/Cargo in the context of refactoring, is a topic I will explore in future post.&lt;/p&gt;
+</description>
+        <pubDate>Wed, 30 Jun 2021 20:11:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html</guid>
+        
+        
+        <category>go</category>
+        
+        <category>rust</category>
+        
+      </item>
     
       <item>
         <title>Manipulating Docker containers via Go -- working with images</title>

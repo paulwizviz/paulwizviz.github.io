@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <title>Go and Rust array and slice -- a comparison - My coding projects and solutions</title>
+    <meta name="author" content="Paul Sitoh" />
+    <meta name="description" content="Go and Rust array and slice -- a comparison" />
+    <meta name="keywords" content="Go and Rust array and slice -- a comparison, My coding projects and solutions, go, rust" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+    <meta content="" property="fb:app_id">
+    <meta content="My coding projects and solutions" property="og:site_name">
+
+    
+
+    
+      <meta content="Go and Rust array and slice -- a comparison" property="og:title">
+      <meta content="article" property="og:type">
+    
+
+    
+      <meta content="A blog about my coding projects and how I solve coding challenges." property="og:description">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html" property="og:url">
+    
+
+    
+      <meta content="2021-07-11T20:31:00+01:00" property="article:published_time">
+      <meta content="https://paulwizviz.github.io/about/" property="article:author">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/static/img/posts/golang-rust-1024x512.png" property="og:image">
+    
+
+    
+      
+        <meta content="go" property="article:section">
+      
+    
+
+    
+      
+    
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@#">
+    <meta name="twitter:creator" content="@#">
+
+    
+      <meta name="twitter:title" content="Go and Rust array and slice -- a comparison">
+    
+
+    
+      <meta name="twitter:url" content="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html">
+    
+
+    
+      <meta name="twitter:description" content="A blog about my coding projects and how I solve coding challenges.">
+    
+
+    
+
+    <!-- Font awesome icons -->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <!-- syntax highlighting CSS -->
+    <link rel="stylesheet" href="/static/css/syntax.css">
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300italic,300,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/super-search.css">
+    <link rel="stylesheet" href="/static/css/thickbox.css">
+    <link rel="stylesheet" href="/static/css/projects.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    
+  </head>
+  <body>
+    <div class="share-page">
+      <img src="https://paulwizviz.github.io/static/img/cover.jpg" height= 50% width=100%/>
+    </div>
+    <div class="container">
+      <div class="col-sm-3">
+        <div class="fixed-condition">
+          <h1 class="author-name"><a href="/">Paul Sitoh</a></h1>
+          
+            <div class="profile-about">
+              I'm a software engineer who enjoys coding principally in Go and where necessary other languages.
+            </div>
+          
+          <div class="social">
+            <ul>
+              
+                <li><a href="https://twitter.com/paulwizviz" target="_blank"><i class="fa fa-twitter"></i></a></li>
+              
+                <li><a href="https://www.linkedin.com/in/paul-s-7088b223/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              
+                <li><a href="https://github.com/paulwizviz" target="_blank"><i class="fa fa-github"></i></a></li>
+              
+            </ul>
+          </div>
+          <div class="search" id="js-search">
+            <input type="text" placeholder="(sitemap)~$ type to search" class="search__input form-control" id="js-search__input">
+            <ul class="search__results" id="js-search__results"></ul>
+          </div>
+          <hr />
+          <ul class="sidebar-nav">
+            <strong>Navigation</strong>
+            <li><a href="/">Home</a></li>
+            
+              <li><a class="about" href="/about/">About Me</a></li>
+            
+              <li><a class="about" href="/projects/">My Projects</a></li>
+            
+          </ul>
+        </div>
+        <!-- end /.fixed-condition -->
+      </div>
+      <div class="col-sm-8 col-offset-1 main-layout">
+        <header class="post-header">
+  <h1 class="post-title">Go and Rust array and slice -- a comparison</h1>
+</header>
+
+<span class="time">11 Jul 2021</span>
+
+  <span class="categories">
+    &raquo; <a href="/category/go">go</a>, <a href="/category/rust">rust</a>
+  </span>
+
+
+<div class="content">
+  
+  <div class="share-page">
+    <img src="https://paulwizviz.github.io/static/img/posts/golang-rust-1024x512.png"/>
+  </div>
+  
+  <div class="post"><h2 id="about-this-post">About this post</h2>
+
+<p>In this post, I’ll examine the concept of array and slice from the perspective of Go and Rust.</p>
+
+<h2 id="go-array-and-slice">Go array and slice</h2>
+
+<p>An array in Go is an ordered collection of elements. Not unlike Rust as you will see.</p>
+
+<p>You simply declare an array this way:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">array</span> <span class="o">:=</span> <span class="p">[</span><span class="m">4</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">}</span></code></pre></figure>
+
+<p>A slice is a data type that gives you, as the name suggest, a slice of an underlying array.</p>
+
+<p>For example, when you declare a slice in this manner:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">array</span> <span class="o">:=</span> <span class="p">[</span><span class="m">4</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">}</span>
+<span class="n">slice</span> <span class="o">:=</span> <span class="n">array</span><span class="p">[</span><span class="o">:</span><span class="m">4</span><span class="p">]</span></code></pre></figure>
+
+<p>The slice in this case is a type containing a reference to the first elements of an array. The slice also contains attributes indicating the number of elements (i.e. len) and the capacity (i.e. cap) of the array. Both len and cap will have the same value. Length denotes the number of elements that slice it is able to view in the array from the initial reference position. Cap refers to the maximum size of the array.</p>
+
+<p>We could also use slice to “expand” the capacity of the array by this command:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">array</span> <span class="o">:=</span> <span class="p">[</span><span class="m">4</span><span class="p">]</span><span class="kt">int</span><span class="p">{</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="m">4</span><span class="p">}</span>
+<span class="n">slice</span> <span class="o">:=</span> <span class="n">array</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">2</span><span class="p">]</span>
+<span class="n">slice</span> <span class="o">:=</span> <span class="nb">append</span><span class="p">(</span><span class="n">slice</span><span class="p">,</span><span class="m">1</span><span class="p">)</span></code></pre></figure>
+
+<p>In this context we are not really expanding the initial array but simply create a new array with double the capacity of the initial array. The elements of the old array copied to the new one with an extra element appended. We can see the relationship between a slice and its array is shown in Figure 1.</p>
+
+<figure style="padding-top:20px; padding-bottom:20px">
+  <img src="https://paulwizviz.github.io/static/img/posts/go-slice.jpg" />
+  <figcaption>Figure 1: Go slice and array memory model</figcaption>
+</figure>
+
+<p>If we declared a slice this way:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">slice</span> <span class="o">:=</span> <span class="n">array</span><span class="p">[</span><span class="m">1</span><span class="o">:</span><span class="m">2</span><span class="p">]</span></code></pre></figure>
+
+<p>This tells the slice to view elements of the array starting from index 1 and before index 2. The slice will have reference to the second element of the array. The slice would only hava a len for 1. This means if you were to range over the slice, you will only get the second element of the array. However, from the perspective of the slice, the value 1 in the array is recorded as index 0 in the slice as opposed to index 1 in the array.</p>
+
+<p>There are alternative approach to declaring a slice. One approach is to use the command <code class="language-plaintext highlighter-rouge">make</code>:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">slice</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">([]</span><span class="kt">int</span><span class="p">,</span><span class="m">4</span><span class="p">)</span></code></pre></figure>
+
+<p>This will create a slice with an underlying array of length 4 and capcity 4, where the array is initialised with values 0.</p>
+
+<p>Another approach is to declare a slice and array field with elements <code class="language-plaintext highlighter-rouge">[1,2,3,4]</code> as shown below:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">slice</span> <span class="o">:=</span> <span class="p">[]</span><span class="kt">int</span><span class="p">{</span><span class="m">1</span><span class="p">,</span><span class="m">2</span><span class="p">,</span><span class="m">3</span><span class="p">,</span><span class="m">4</span><span class="p">}</span></code></pre></figure>
+
+<p>The choice approach to declare a slice and array has an impact on performance. You will need to judge which approach based on your use case.</p>
+
+<h2 id="rust-array-and-slice">Rust array and slice</h2>
+
+<p>An array in Rust is declared this way:</p>
+
+<figure class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">array</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">];</span></code></pre></figure>
+
+<p>We can declare a slice this way:</p>
+
+<figure class="highlight"><pre><code class="language-rust" data-lang="rust"><span class="k">let</span> <span class="n">slice</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="o">..</span><span class="mi">2</span><span class="p">];</span></code></pre></figure>
+
+<p>In the case of rust, <code class="language-plaintext highlighter-rouge">slice</code> is a variable of a slice type with a length attribute. <code class="language-plaintext highlighter-rouge">slice</code> is a reference to an <code class="language-plaintext highlighter-rouge">array</code>, where pointer in the slice points to the second element of <code class="language-plaintext highlighter-rouge">array</code>. The len attribute will have a value of 1.</p>
+
+<p>Figure 2 illustrate the relationship between a slice and an array.</p>
+
+<figure style="padding-top:20px; padding-bottom:20px">
+  <img src="https://paulwizviz.github.io/static/img/posts/rust-slice.jpg" />
+  <figcaption>Figure 2: Rust slice and array memory model</figcaption>
+</figure>
+
+<h2 id="my-observations">My observations</h2>
+
+<p>In the case of Go, a slice is all you need to use as an index collection type for most cases and you can treat it much like an expandable array. You can easily iterate through a slice to obtain elements of its underlying array or simply restrict you slice to a subset of array and iterate through that.</p>
+
+<p>Rust slices support limited operations. There is no equivalent to Go’s <code class="language-plaintext highlighter-rouge">append</code> operation to expand its underlying array or a <code class="language-plaintext highlighter-rouge">cap</code> to determine the length of the underlying array. There indirect ways of getting the same effect as Go slice. There are, however, higher order data types like <code class="language-plaintext highlighter-rouge">vector</code> that you could use.</p>
+</div>
+  <div class="share-page">
+  <span style="float: left;">Share this on &rarr;&nbsp;&nbsp;</span>
+
+  <!-- Twitter -->
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="#">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+  <!-- Facebook -->
+  <!-- <div class="fb-share-button" data-href="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html" data-layout="button_count" style="position: relative; top: -8px; left: 3px;"></div> -->
+</div>
+
+<!-- <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.6&appId=";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script> -->
+
+</div>
+
+
+  
+    
+      
+        
+          
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+            <div class="panel-body">
+              <h4>Related Posts</h4>
+              <ul>
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html">Go and Rust workspace and modules -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html">Manipulating Docker containers via Go -- working with images</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html">Go and Rust package management -- my initial observations</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+  
+  </ul>
+</div>
+
+
+<div class="PageNavigation">
+  
+    <a class="prev" href="/go/rust/2021/06/30/go-rust-projects-layout.html">&laquo; Go and Rust workspace and modules -- a comparison</a>
+  
+  
+</div>
+
+<!-- <div class="disqus-comments">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var disqus_shortname = "";
+    var disqus_identifier = "https://paulwizviz.github.io_Go and Rust array and slice -- a comparison";
+    var disqus_title = "Go and Rust array and slice -- a comparison";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    /* ]]> */
+  </script> -->
+</div>
+
+        <footer>
+          &copy; Paul Sitoh
+          
+            - <a href="https://github.com/paulwizviz">https://github.com/paulwizviz</a> - Powered by Jekyll.
+          
+          <!-- <div class="btn-github" style="float:right;">
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=star&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=fork&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+          </div> -->
+        </footer>
+      </div>
+      <!-- end /.col-sm-8 -->
+    </div>
+    <!-- end /.container -->
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/super-search.js"></script>
+    <script src="/static/js/thickbox-compressed.js"></script>
+    <script src="/static/js/projects.js"></script>
+  </body>
+</html>
+

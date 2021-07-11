@@ -5,12 +5,102 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/sitemap.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 04 Jul 2021 09:49:43 +0100</pubDate>
-    <lastBuildDate>Sun, 04 Jul 2021 09:49:43 +0100</lastBuildDate>
+    <pubDate>Tue, 13 Jul 2021 09:08:27 +0100</pubDate>
+    <lastBuildDate>Tue, 13 Jul 2021 09:08:27 +0100</lastBuildDate>
     <generator>Jekyll v3.9.0</generator>
     
       <item>
-        <title>Go and Rust workspace and modules -- A comparison</title>
+        <title>Go and Rust array and slice -- a comparison</title>
+        <description>&lt;h2 id=&quot;about-this-post&quot;&gt;About this post&lt;/h2&gt;
+
+&lt;p&gt;In this post, I’ll examine the concept of array and slice from the perspective of Go and Rust.&lt;/p&gt;
+
+&lt;h2 id=&quot;go-array-and-slice&quot;&gt;Go array and slice&lt;/h2&gt;
+
+&lt;p&gt;An array in Go is an ordered collection of elements. Not unlike Rust as you will see.&lt;/p&gt;
+
+&lt;p&gt;You simply declare an array this way:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;A slice is a data type that gives you, as the name suggest, a slice of an underlying array.&lt;/p&gt;
+
+&lt;p&gt;For example, when you declare a slice in this manner:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The slice in this case is a type containing a reference to the first elements of an array. The slice also contains attributes indicating the number of elements (i.e. len) and the capacity (i.e. cap) of the array. Both len and cap will have the same value. Length denotes the number of elements that slice it is able to view in the array from the initial reference position. Cap refers to the maximum size of the array.&lt;/p&gt;
+
+&lt;p&gt;We could also use slice to “expand” the capacity of the array by this command:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In this context we are not really expanding the initial array but simply create a new array with double the capacity of the initial array. The elements of the old array copied to the new one with an extra element appended. We can see the relationship between a slice and its array is shown in Figure 1.&lt;/p&gt;
+
+&lt;figure style=&quot;padding-top:20px; padding-bottom:20px&quot;&gt;
+  &lt;img src=&quot;https://paulwizviz.github.io/static/img/posts/go-slice.jpg&quot; /&gt;
+  &lt;figcaption&gt;Figure 1: Go slice and array memory model&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;If we declared a slice this way:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This tells the slice to view elements of the array starting from index 1 and before index 2. The slice will have reference to the second element of the array. The slice would only hava a len for 1. This means if you were to range over the slice, you will only get the second element of the array. However, from the perspective of the slice, the value 1 in the array is recorded as index 0 in the slice as opposed to index 1 in the array.&lt;/p&gt;
+
+&lt;p&gt;There are alternative approach to declaring a slice. One approach is to use the command &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;make&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;make&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;This will create a slice with an underlying array of length 4 and capcity 4, where the array is initialised with values 0.&lt;/p&gt;
+
+&lt;p&gt;Another approach is to declare a slice and array field with elements &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;[1,2,3,4]&lt;/code&gt; as shown below:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-go&quot; data-lang=&quot;go&quot;&gt;&lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;The choice approach to declare a slice and array has an impact on performance. You will need to judge which approach based on your use case.&lt;/p&gt;
+
+&lt;h2 id=&quot;rust-array-and-slice&quot;&gt;Rust array and slice&lt;/h2&gt;
+
+&lt;p&gt;An array in Rust is declared this way:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;array&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;We can declare a slice this way:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-rust&quot; data-lang=&quot;rust&quot;&gt;&lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;slice&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;..&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;In the case of rust, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;slice&lt;/code&gt; is a variable of a slice type with a length attribute. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;slice&lt;/code&gt; is a reference to an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;array&lt;/code&gt;, where pointer in the slice points to the second element of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;array&lt;/code&gt;. The len attribute will have a value of 1.&lt;/p&gt;
+
+&lt;p&gt;Figure 2 illustrate the relationship between a slice and an array.&lt;/p&gt;
+
+&lt;figure style=&quot;padding-top:20px; padding-bottom:20px&quot;&gt;
+  &lt;img src=&quot;https://paulwizviz.github.io/static/img/posts/rust-slice.jpg&quot; /&gt;
+  &lt;figcaption&gt;Figure 2: Rust slice and array memory model&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;h2 id=&quot;my-observations&quot;&gt;My observations&lt;/h2&gt;
+
+&lt;p&gt;In the case of Go, a slice is all you need to use as an index collection type for most cases and you can treat it much like an expandable array. You can easily iterate through a slice to obtain elements of its underlying array or simply restrict you slice to a subset of array and iterate through that.&lt;/p&gt;
+
+&lt;p&gt;Rust slices support limited operations. There is no equivalent to Go’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;append&lt;/code&gt; operation to expand its underlying array or a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cap&lt;/code&gt; to determine the length of the underlying array. There indirect ways of getting the same effect as Go slice. There are, however, higher order data types like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;vector&lt;/code&gt; that you could use.&lt;/p&gt;
+</description>
+        <pubDate>Sun, 11 Jul 2021 20:31:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html</guid>
+        
+        
+        <category>go</category>
+        
+        <category>rust</category>
+        
+      </item>
+    
+      <item>
+        <title>Go and Rust workspace and modules -- a comparison</title>
         <description>&lt;h2 id=&quot;about-this-post&quot;&gt;About this post&lt;/h2&gt;
 
 &lt;p&gt;It is rare, if ever, for any major project to involve only a single source file. So when you start a major software project, it is important to do so on the right foundation. A software project that is able to scale easily is one where the project is organised around modules where each module address a separate concern.&lt;/p&gt;

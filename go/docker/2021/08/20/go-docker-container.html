@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <title>Creating and running docker container via Go SDK - My coding projects and solutions</title>
+    <meta name="author" content="Paul Sitoh" />
+    <meta name="description" content="Creating and running docker container via Go SDK" />
+    <meta name="keywords" content="Creating and running docker container via Go SDK, My coding projects and solutions, go, docker" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+    <meta content="" property="fb:app_id">
+    <meta content="My coding projects and solutions" property="og:site_name">
+
+    
+
+    
+      <meta content="Creating and running docker container via Go SDK" property="og:title">
+      <meta content="article" property="og:type">
+    
+
+    
+      <meta content="A blog about my coding projects and how I solve coding challenges." property="og:description">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html" property="og:url">
+    
+
+    
+      <meta content="2021-08-20T21:31:00+01:00" property="article:published_time">
+      <meta content="https://paulwizviz.github.io/about/" property="article:author">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/static/img/posts/golang-docker.png" property="og:image">
+    
+
+    
+      
+        <meta content="go" property="article:section">
+      
+    
+
+    
+      
+    
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@#">
+    <meta name="twitter:creator" content="@#">
+
+    
+      <meta name="twitter:title" content="Creating and running docker container via Go SDK">
+    
+
+    
+      <meta name="twitter:url" content="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html">
+    
+
+    
+      <meta name="twitter:description" content="A blog about my coding projects and how I solve coding challenges.">
+    
+
+    
+
+    <!-- Font awesome icons -->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <!-- syntax highlighting CSS -->
+    <link rel="stylesheet" href="/static/css/syntax.css">
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300italic,300,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/super-search.css">
+    <link rel="stylesheet" href="/static/css/thickbox.css">
+    <link rel="stylesheet" href="/static/css/projects.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    
+  </head>
+  <body>
+    <div class="share-page">
+      <img src="https://paulwizviz.github.io/static/img/cover.jpg" height= 50% width=100%/>
+    </div>
+    <div class="container">
+      <div class="col-sm-3">
+        <div class="fixed-condition">
+          <h1 class="author-name"><a href="/">Paul Sitoh</a></h1>
+          
+            <div class="profile-about">
+              I'm a software engineer who enjoys coding principally in Go and where necessary other languages.
+            </div>
+          
+          <div class="social">
+            <ul>
+              
+                <li><a href="https://twitter.com/paulwizviz" target="_blank"><i class="fa fa-twitter"></i></a></li>
+              
+                <li><a href="https://www.linkedin.com/in/paul-s-7088b223/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              
+                <li><a href="https://github.com/paulwizviz" target="_blank"><i class="fa fa-github"></i></a></li>
+              
+            </ul>
+          </div>
+          <div class="search" id="js-search">
+            <input type="text" placeholder="(sitemap)~$ type to search" class="search__input form-control" id="js-search__input">
+            <ul class="search__results" id="js-search__results"></ul>
+          </div>
+          <hr />
+          <ul class="sidebar-nav">
+            <strong>Navigation</strong>
+            <li><a href="/">Home</a></li>
+            
+              <li><a class="about" href="/about/">About Me</a></li>
+            
+              <li><a class="about" href="/projects/">My Projects</a></li>
+            
+          </ul>
+        </div>
+        <!-- end /.fixed-condition -->
+      </div>
+      <div class="col-sm-8 col-offset-1 main-layout">
+        <header class="post-header">
+  <h1 class="post-title">Creating and running docker container via Go SDK</h1>
+</header>
+
+<span class="time">20 Aug 2021</span>
+
+  <span class="categories">
+    &raquo; <a href="/category/go">go</a>, <a href="/category/docker">docker</a>
+  </span>
+
+
+<div class="content">
+  
+  <div class="share-page">
+    <img src="https://paulwizviz.github.io/static/img/posts/golang-docker.png"/>
+  </div>
+  
+  <div class="post"><h2 id="about-this-post">About this post</h2>
+
+<p>In this post, I’ll briefly describe the steps involved in using the Docker Go SDK to create and run a Docker container.</p>
+
+<p>I am going to replicate a Docker cli command for running a container using the Docker Go SDK. The cli command pattern is</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>docker run <span class="o">[</span>OPTIONS] IMAGE[:TAG|@DIGEST] <span class="o">[</span>COMMAND] <span class="o">[</span>ARG...]</code></pre></figure>
+
+<p>For the purpose of this post, I am going to replicate this specific command:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">docker run <span class="nt">--name</span> my_container <span class="nt">--network</span><span class="o">=</span>my-network <span class="nt">-v</span> /opt:/opt <span class="nt">-p</span> 80:80 ubuntu:latest</code></pre></figure>
+
+<p>The purpose of replicating the cli is to illustrate aspects of the Go SDK pertaining to the creation and running of container. It is not to advocate the replacement of Docker cli commands. There are more meaningful use cases for the Go SDK but it is beyond the scope of this post. I’ll leave you to imagine the kind of use cases for Go SDK.</p>
+
+<h2 id="running-a-container-using-go-sdk">Running a container using Go SDK</h2>
+
+<p>The first step in creating and running a container is instantiating a docker client. This is as follows:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">cli</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">client</span><span class="o">.</span><span class="n">NewClientWithOpts</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">FromEnv</span><span class="p">,</span> <span class="n">client</span><span class="o">.</span><span class="n">WithAPIVersionNegotiation</span><span class="p">())</span>
+<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+   <span class="n">log</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>Having created the docker client, the next step is to create a container from an image. In this post, I am creating a container from the latest <code class="language-plaintext highlighter-rouge">ubuntu</code> image.</p>
+
+<p>The requirements for our running container are as follows:</p>
+
+<ul>
+  <li>
+    <p>assigned the container the name <code class="language-plaintext highlighter-rouge">my_container</code>;</p>
+  </li>
+  <li>
+    <p>associate the container to the network name <code class="language-plaintext highlighter-rouge">my-network</code>;</p>
+  </li>
+  <li>
+    <p>mount the host volume name <code class="language-plaintext highlighter-rouge">/opt</code> to the volume in the container name <code class="language-plaintext highlighter-rouge">/opt</code>;</p>
+  </li>
+  <li>
+    <p>map the host port <code class="language-plaintext highlighter-rouge">80</code> to a port (i.e. <code class="language-plaintext highlighter-rouge">80</code>) exposed by the container.</p>
+  </li>
+</ul>
+
+<p>The step to implement these requirements in Go SDK are as follows:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">config</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">container</span><span class="o">.</span><span class="n">Config</span><span class="p">{</span>
+  <span class="n">Image</span><span class="o">:</span> <span class="s">"ubuntu:latest"</span><span class="p">,</span>
+  <span class="n">ExposedPorts</span><span class="o">:</span> <span class="n">nat</span><span class="o">.</span><span class="n">PortSet</span><span class="p">{</span>
+    <span class="n">nat</span><span class="o">.</span><span class="n">Port</span><span class="p">(</span><span class="s">"80"</span><span class="p">)</span><span class="o">:</span> <span class="p">{},</span>
+  <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="n">hostConfig</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">container</span><span class="o">.</span><span class="n">HostConfig</span><span class="p">{</span>
+   <span class="n">PortBindings</span><span class="o">:</span> <span class="k">map</span><span class="p">[</span><span class="n">nat</span><span class="o">.</span><span class="n">Port</span><span class="p">][]</span><span class="n">nat</span><span class="o">.</span><span class="n">PortBinding</span><span class="p">{</span>
+     <span class="n">nat</span><span class="o">.</span><span class="n">Port</span><span class="p">(</span><span class="s">"80"</span><span class="p">)</span><span class="o">:</span> <span class="p">[]</span><span class="n">nat</span><span class="o">.</span><span class="n">PortBinding</span><span class="p">{</span>
+        <span class="p">{</span>
+          <span class="n">HostIP</span><span class="o">:</span>   <span class="s">"0.0.0.0"</span><span class="p">,</span>
+          <span class="n">HostPort</span><span class="o">:</span> <span class="s">"80"</span><span class="p">,</span>
+        <span class="p">},</span>
+     <span class="p">},</span>
+   <span class="p">}</span>
+   <span class="n">Mounts</span><span class="o">:</span><span class="p">[]</span><span class="n">mount</span><span class="o">.</span><span class="n">Mount</span><span class="p">{</span>
+      <span class="p">{</span>
+        <span class="n">Type</span><span class="o">:</span> <span class="n">mount</span><span class="o">.</span><span class="n">TypeVolume</span>
+        <span class="n">Source</span><span class="o">:</span> <span class="s">"/opt"</span><span class="p">,</span>
+        <span class="n">Target</span><span class="o">:</span> <span class="s">"/opt"</span><span class="p">,</span>
+      <span class="p">},</span>
+   <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="n">netConfig</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">network</span><span class="o">.</span><span class="n">NetworkingConfig</span><span class="p">{</span>
+  <span class="n">EndpointsConfig</span><span class="o">:</span> <span class="k">map</span><span class="p">[</span><span class="kt">string</span><span class="p">]</span><span class="o">*</span><span class="n">network</span><span class="o">.</span><span class="n">EndpointSettings</span><span class="p">{</span>
+    <span class="s">"network"</span><span class="o">:</span> <span class="p">{</span>
+      <span class="n">NetworkID</span><span class="o">:</span> <span class="s">"my-network"</span><span class="p">,</span>
+    <span class="p">},</span>
+  <span class="p">},</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>These Go SDK codes are the equivalent of Docker run cli options at the start of this post.</p>
+
+<p>To create the container based on the options mentioned above, the equivalent Go SDK command is as follows:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">resp</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">cli</span><span class="o">.</span><span class="n">ContainerCreate</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">TODO</span><span class="p">(),</span> <span class="n">config</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">netConfig</span><span class="p">,</span> <span class="no">nil</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></code></pre></figure>
+
+<p>The argument with <code class="language-plaintext highlighter-rouge">nil</code> value is an advanced option related to the platform specification. It is not commonly used. If you wish to learn more, please refer to the <a href="https://docs.docker.com/">Official Documentation</a> for details.</p>
+
+<p>Finally, to run the container as a background process, execute this command:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="n">cli</span><span class="o">.</span><span class="n">ContainerStart</span><span class="p">(</span><span class="n">context</span><span class="o">.</span><span class="n">TODO</span><span class="p">(),</span> <span class="n">resp</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ContainerStartOptions</span><span class="p">{})</span></code></pre></figure>
+
+<h2 id="summing-up">Summing up</h2>
+
+<p>In this post, I have covered the most common and basic Docker container operation. To learn more about the operations mentioned in this post, please refer to the API specification for <a href="https://pkg.go.dev/github.com/ph/moby/client#Client.ContainerCreate">ContainerCreate</a> and <a href="https://pkg.go.dev/github.com/ph/moby/client#Client.ContainerStart">ContainerStart</a>.</p>
+
+<p>There are more advance Docker container related operations but they generally follow the pattern described in this post. If you like to learn more, please refer to <a href="https://pkg.go.dev/github.com/ph/moby/client">https://pkg.go.dev/github.com/ph/moby/client</a>.</p>
+</div>
+  <div class="share-page">
+  <span style="float: left;">Share this on &rarr;&nbsp;&nbsp;</span>
+
+  <!-- Twitter -->
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="#">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+  <!-- Facebook -->
+  <!-- <div class="fb-share-button" data-href="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html" data-layout="button_count" style="position: relative; top: -8px; left: 3px;"></div> -->
+</div>
+
+<!-- <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.6&appId=";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script> -->
+
+</div>
+
+
+  
+    
+      
+        
+          
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+            <div class="panel-body">
+              <h4>Related Posts</h4>
+              <ul>
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html">Ethereum Application Binary Interface (ABI) in Go</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/solidity">solidity</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html">Go and Rust array and slice -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html">Go and Rust workspace and modules -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html">Manipulating Docker containers via Go -- working with images</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html">Go and Rust package management -- my initial observations</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+  
+  </ul>
+</div>
+
+
+<div class="PageNavigation">
+  
+    <a class="prev" href="/go/solidity/2021/07/31/go-solidity-abigen.html">&laquo; Ethereum Application Binary Interface (ABI) in Go</a>
+  
+  
+</div>
+
+<!-- <div class="disqus-comments">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var disqus_shortname = "";
+    var disqus_identifier = "https://paulwizviz.github.io_Creating and running docker container via Go SDK";
+    var disqus_title = "Creating and running docker container via Go SDK";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    /* ]]> */
+  </script> -->
+</div>
+
+        <footer>
+          &copy; Paul Sitoh
+          
+            - <a href="https://github.com/paulwizviz">https://github.com/paulwizviz</a> - Powered by Jekyll.
+          
+          <!-- <div class="btn-github" style="float:right;">
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=star&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=fork&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+          </div> -->
+        </footer>
+      </div>
+      <!-- end /.col-sm-8 -->
+    </div>
+    <!-- end /.container -->
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/super-search.js"></script>
+    <script src="/static/js/thickbox-compressed.js"></script>
+    <script src="/static/js/projects.js"></script>
+  </body>
+</html>
+

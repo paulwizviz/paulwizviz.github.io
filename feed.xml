@@ -5,9 +5,208 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 21 Aug 2021 22:39:40 +0100</pubDate>
-    <lastBuildDate>Sat, 21 Aug 2021 22:39:40 +0100</lastBuildDate>
+    <pubDate>Tue, 24 Aug 2021 23:18:53 +0100</pubDate>
+    <lastBuildDate>Tue, 24 Aug 2021 23:18:53 +0100</lastBuildDate>
     <generator>Jekyll v3.9.0</generator>
+    
+      <item>
+        <title>Embedding WebAssembly in Go app</title>
+        <description>&lt;h2 id=&quot;about-this-post&quot;&gt;About this post&lt;/h2&gt;
+
+&lt;p&gt;Imagine you are writing an app in Go and found a library with all the APIs you need. You will like to integrate it into your app. However, it is not written in Go. What options are available to you?&lt;/p&gt;
+
+&lt;p&gt;The options for you depends on the kind of language that was the basis of your library. If it was written in C/C++ you could use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cgo&lt;/code&gt;. You could also use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gRPC/protobuf&lt;/code&gt; or if you search the internet, you might even find some custom solutions.&lt;/p&gt;
+
+&lt;p&gt;In this post, I am going to describe a way to do it via WebAssembly, a tool call &lt;a href=&quot;https://github.com/wasmerio/wasmer-go&quot;&gt;wasmer-go&lt;/a&gt; and using Go file embedding (version 1.16 onwards) capabilities.&lt;/p&gt;
+
+&lt;h2 id=&quot;webassembly&quot;&gt;WebAssembly&lt;/h2&gt;
+
+&lt;p&gt;Here is the official definition of the technology:&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;WebAssembly (abbreviated Wasm) is a binary instruction format for a stack-based virtual machine. Wasm is designed as a portable compilation target for programming languages, enabling deployment on the web for client and server applications.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;I won’t go into the details of the inner workings of Wasm. Please refer to the &lt;a href=&quot;https://webassembly.org/&quot;&gt;official document&lt;/a&gt;. In the context of this post, we could think of Wasm as a byte code that can be executed by a Wasm runtime engine; not too dissimilar to Java Virtual Machine (JVM), up to a point.&lt;/p&gt;
+
+&lt;p&gt;The source code of a Wasm is raw text known as an assembly code. To illustrate a concept, we have a simple &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;math&lt;/code&gt; module, written in Wasm assembly to perform some arithmetic operations: 1) add the two integer values, 2) multiply the sum by 10, and 3) export a method name &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;getAns&lt;/code&gt; for a calling application to get results. Our Wasm aseembly is as follows:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-wasm&quot; data-lang=&quot;wasm&quot;&gt;(module
+    (func $add (param $lhs i32) (param $rhs i32) (result i32)
+        local.get $lhs
+        local.get $rhs
+        i32.add)
+    (func $mul (param $value i32) (result i32)
+        local.get $value
+        i32.const 10
+        i32.mul
+    )
+    (func (export &quot;getAns&quot;) (param $lhs i32) (param $rhs i32) (result i32)
+        local.get $lhs
+        local.get $rhs
+        call $add
+        call $mul)
+)&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;For any practical applications, you will not likely be writing Wasm in assembly form. Chances are you would be compiling from a programming language like C/C++, Rust, Go and more. This is beyond the scope of this post and I suggest you refer to the Wasm &lt;a href=&quot;https://webassembly.org/&quot;&gt;official document&lt;/a&gt; for details.&lt;/p&gt;
+
+&lt;p&gt;The Wasm assembly as shown above will need to be compiled into byte codes. Let’s assumed that the assembly code is in a file name &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;math.wat&lt;/code&gt;. You will run the command, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wat2wasm math.wat -o math.wasm&lt;/code&gt; which will convert the assembly code into the following byte code found in the file &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;math.wasm&lt;/code&gt;:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-wasm&quot; data-lang=&quot;wasm&quot;&gt;0000000: 0061 736d                                 ; WASM_BINARY_MAGIC
+0000004: 0100 0000                                 ; WASM_BINARY_VERSION
+; section &quot;Type&quot; (1)
+0000008: 01                                        ; section code
+0000009: 00                                        ; section size (guess)
+000000a: 02                                        ; num types
+; func type 0
+000000b: 60                                        ; func
+000000c: 02                                        ; num params
+000000d: 7f                                        ; i32
+000000e: 7f                                        ; i32
+000000f: 01                                        ; num results
+0000010: 7f                                        ; i32
+; func type 1
+0000011: 60                                        ; func
+0000012: 01                                        ; num params
+0000013: 7f                                        ; i32
+0000014: 01                                        ; num results
+0000015: 7f                                        ; i32
+0000009: 0c                                        ; FIXUP section size
+; section &quot;Function&quot; (3)
+0000016: 03                                        ; section code
+0000017: 00                                        ; section size (guess)
+0000018: 03                                        ; num functions
+0000019: 00                                        ; function 0 signature index
+000001a: 01                                        ; function 1 signature index
+000001b: 00                                        ; function 2 signature index
+0000017: 04                                        ; FIXUP section size
+; section &quot;Export&quot; (7)
+000001c: 07                                        ; section code
+000001d: 00                                        ; section size (guess)
+000001e: 01                                        ; num exports
+000001f: 06                                        ; string length
+0000020: 6765 7441 6e73                           getAns  ; export name
+0000026: 00                                        ; export kind
+0000027: 02                                        ; export func index
+000001d: 0a                                        ; FIXUP section size
+; section &quot;Code&quot; (10)
+0000028: 0a                                        ; section code
+0000029: 00                                        ; section size (guess)
+000002a: 03                                        ; num functions
+; function body 0
+000002b: 00                                        ; func body size (guess)
+000002c: 00                                        ; local decl count
+000002d: 20                                        ; local.get
+000002e: 00                                        ; local index
+000002f: 20                                        ; local.get
+0000030: 01                                        ; local index
+0000031: 6a                                        ; i32.add
+0000032: 0b                                        ; end
+000002b: 07                                        ; FIXUP func body size
+; function body 1
+0000033: 00                                        ; func body size (guess)
+0000034: 00                                        ; local decl count
+0000035: 20                                        ; local.get
+0000036: 00                                        ; local index
+0000037: 41                                        ; i32.const
+0000038: 0a                                        ; i32 literal
+0000039: 6c                                        ; i32.mul
+000003a: 0b                                        ; end
+0000033: 07                                        ; FIXUP func body size
+; function body 2
+000003b: 00                                        ; func body size (guess)
+000003c: 00                                        ; local decl count
+000003d: 20                                        ; local.get
+000003e: 00                                        ; local index
+000003f: 20                                        ; local.get
+0000040: 01                                        ; local index
+0000041: 10                                        ; call
+0000042: 00                                        ; function index
+0000043: 10                                        ; call
+0000044: 01                                        ; function index
+0000045: 0b                                        ; end
+000003b: 0a                                        ; FIXUP func body size
+0000029: 1c                                        ; FIXUP section size&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;h2 id=&quot;integrating-into-our-go-app&quot;&gt;Integrating into our Go app&lt;/h2&gt;
+
+&lt;p&gt;Wasm byte code is typically executed in a browser based or Javascript runtime engine. An example of a Wasm embedded in NodeJS is as shown here:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-javascript&quot; data-lang=&quot;javascript&quot;&gt;&lt;span class=&quot;nx&quot;&gt;require&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;webassembly&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;load&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;s2&quot;&gt;./pub/math.wasm&lt;/span&gt;&lt;span class=&quot;dl&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;then&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;nx&quot;&gt;console&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;log&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;exports&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;));&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;});&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;To get Wasm byte code to run in Go, you can use this tool call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wasmer-go&lt;/code&gt; and it is found in this repository &lt;a href=&quot;https://github.com/wasmerio/wasmer-go&quot;&gt;https://github.com/wasmerio/wasmer-go&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In our project for this post, our goal is to create a simple native app. Our implementation is as follows:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-golang&quot; data-lang=&quot;golang&quot;&gt;&lt;span class=&quot;k&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;
+	&lt;span class=&quot;s&quot;&gt;&quot;embed&quot;&lt;/span&gt;
+	&lt;span class=&quot;s&quot;&gt;&quot;fmt&quot;&lt;/span&gt;
+
+	&lt;span class=&quot;n&quot;&gt;wasmer&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;github.com/wasmerio/wasmer-go/wasmer&quot;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;c&quot;&gt;//go:embed multi.wasm&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;embed&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;FS&lt;/span&gt;
+
+&lt;span class=&quot;k&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;wasmBytes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;f&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ReadFile&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;multi.wasm&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+	&lt;span class=&quot;n&quot;&gt;engine&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wasmer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewEngine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;store&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wasmer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewStore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;engine&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+	&lt;span class=&quot;c&quot;&gt;// Compiles the module&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wasmer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewModule&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;store&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wasmBytes&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+	&lt;span class=&quot;c&quot;&gt;// Instantiates the module&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;importObject&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wasmer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewImportObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;wasmer&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NewInstance&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;module&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;importObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+	&lt;span class=&quot;c&quot;&gt;// Gets the `add` exported function from the WebAssembly instance.&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;getAns&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;instance&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Exports&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetFunction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;getAns&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+	&lt;span class=&quot;c&quot;&gt;// Calls that exported function with Go standard values. The WebAssembly&lt;/span&gt;
+	&lt;span class=&quot;c&quot;&gt;// types are inferred and values are casted automatically.&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;getAns&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+
+	&lt;span class=&quot;n&quot;&gt;fmt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Println&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;result&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;// 42!&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;When you build this code – i.e. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go build&lt;/code&gt; – it will generate a executable with the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;math.wasm&lt;/code&gt; file encoded.&lt;/p&gt;
+
+&lt;p&gt;Through this approach, you now have the ability to integrate library written in other languages.&lt;/p&gt;
+
+&lt;h2 id=&quot;summing-up&quot;&gt;Summing up&lt;/h2&gt;
+
+&lt;p&gt;To sum it up, if you elect to integrate a library using other languages via Wasm into your Go app, the steps are:&lt;/p&gt;
+
+&lt;p&gt;STEP 1: Generate a Wasm assembly and/or byte code using the tools from the offical source or third parties tool.&lt;/p&gt;
+
+&lt;p&gt;STEP 2: Embed the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;*.wasm&lt;/code&gt; or byte code file into your app (Go v1.16 onwards use the embed package or appropriate tool for earlier version).&lt;/p&gt;
+
+&lt;p&gt;STEP 3: Use the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;wasmer-go&lt;/code&gt; module as the basis of your Wasm runtime.&lt;/p&gt;
+
+&lt;p&gt;STEP 4: Build your app as per the Go tools.&lt;/p&gt;
+
+&lt;p&gt;Having learnt this approach to integrating Go app with non-Go libraries, you may feel that Wasm is the way to go, pardon the pun. For that, I shall leave it to you to decide.&lt;/p&gt;
+
+&lt;p&gt;From my perspective, I see great potential for Wasm as a basis for a Smart Contract for multiple blockchain protocol but it is a topic I hope to share in future posts after my experimentation.&lt;/p&gt;
+</description>
+        <pubDate>Tue, 24 Aug 2021 19:03:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html</guid>
+        
+        
+        <category>go</category>
+        
+        <category>webassembly</category>
+        
+      </item>
     
       <item>
         <title>Creating and running docker container via Go SDK</title>

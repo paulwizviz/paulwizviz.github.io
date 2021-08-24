@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <title>Embedding WebAssembly in Go app - My coding projects and solutions</title>
+    <meta name="author" content="Paul Sitoh" />
+    <meta name="description" content="Embedding WebAssembly in Go app" />
+    <meta name="keywords" content="Embedding WebAssembly in Go app, My coding projects and solutions, go, webassembly" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+    <meta content="" property="fb:app_id">
+    <meta content="My coding projects and solutions" property="og:site_name">
+
+    
+
+    
+      <meta content="Embedding WebAssembly in Go app" property="og:title">
+      <meta content="article" property="og:type">
+    
+
+    
+      <meta content="A blog about my coding projects and how I solve coding challenges." property="og:description">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html" property="og:url">
+    
+
+    
+      <meta content="2021-08-24T19:03:00+01:00" property="article:published_time">
+      <meta content="https://paulwizviz.github.io/about/" property="article:author">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/static/img/posts/go-wa.jpg" property="og:image">
+    
+
+    
+      
+        <meta content="go" property="article:section">
+      
+    
+
+    
+      
+    
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@#">
+    <meta name="twitter:creator" content="@#">
+
+    
+      <meta name="twitter:title" content="Embedding WebAssembly in Go app">
+    
+
+    
+      <meta name="twitter:url" content="https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html">
+    
+
+    
+      <meta name="twitter:description" content="A blog about my coding projects and how I solve coding challenges.">
+    
+
+    
+
+    <!-- Font awesome icons -->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <!-- syntax highlighting CSS -->
+    <link rel="stylesheet" href="/static/css/syntax.css">
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300italic,300,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/super-search.css">
+    <link rel="stylesheet" href="/static/css/thickbox.css">
+    <link rel="stylesheet" href="/static/css/projects.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    
+  </head>
+  <body>
+    <div class="share-page">
+      <img src="https://paulwizviz.github.io/static/img/cover.jpg" height= 50% width=100%/>
+    </div>
+    <div class="container">
+      <div class="col-sm-3">
+        <div class="fixed-condition">
+          <h1 class="author-name"><a href="/">Paul Sitoh</a></h1>
+          
+            <div class="profile-about">
+              I'm a software engineer who enjoys coding principally in Go and where necessary other languages.
+            </div>
+          
+          <div class="social">
+            <ul>
+              
+                <li><a href="https://twitter.com/paulwizviz" target="_blank"><i class="fa fa-twitter"></i></a></li>
+              
+                <li><a href="https://www.linkedin.com/in/paul-s-7088b223/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              
+                <li><a href="https://github.com/paulwizviz" target="_blank"><i class="fa fa-github"></i></a></li>
+              
+            </ul>
+          </div>
+          <div class="search" id="js-search">
+            <input type="text" placeholder="(sitemap)~$ type to search" class="search__input form-control" id="js-search__input">
+            <ul class="search__results" id="js-search__results"></ul>
+          </div>
+          <hr />
+          <ul class="sidebar-nav">
+            <strong>Navigation</strong>
+            <li><a href="/">Home</a></li>
+            
+              <li><a class="about" href="/about/">About Me</a></li>
+            
+              <li><a class="about" href="/projects/">My Projects</a></li>
+            
+          </ul>
+        </div>
+        <!-- end /.fixed-condition -->
+      </div>
+      <div class="col-sm-8 col-offset-1 main-layout">
+        <header class="post-header">
+  <h1 class="post-title">Embedding WebAssembly in Go app</h1>
+</header>
+
+<span class="time">24 Aug 2021</span>
+
+  <span class="categories">
+    &raquo; <a href="/category/go">go</a>, <a href="/category/webassembly">webassembly</a>
+  </span>
+
+
+<div class="content">
+  
+  <div class="share-page">
+    <img src="https://paulwizviz.github.io/static/img/posts/go-wa.jpg"/>
+  </div>
+  
+  <div class="post"><h2 id="about-this-post">About this post</h2>
+
+<p>Imagine you are writing an app in Go and found a library with all the APIs you need. You will like to integrate it into your app. However, it is not written in Go. What options are available to you?</p>
+
+<p>The options for you depends on the kind of language that was the basis of your library. If it was written in C/C++ you could use <code class="language-plaintext highlighter-rouge">cgo</code>. You could also use <code class="language-plaintext highlighter-rouge">gRPC/protobuf</code> or if you search the internet, you might even find some custom solutions.</p>
+
+<p>In this post, I am going to describe a way to do it via WebAssembly, a tool call <a href="https://github.com/wasmerio/wasmer-go">wasmer-go</a> and using Go file embedding (version 1.16 onwards) capabilities.</p>
+
+<h2 id="webassembly">WebAssembly</h2>
+
+<p>Here is the official definition of the technology:</p>
+
+<blockquote>
+  <p>WebAssembly (abbreviated Wasm) is a binary instruction format for a stack-based virtual machine. Wasm is designed as a portable compilation target for programming languages, enabling deployment on the web for client and server applications.</p>
+</blockquote>
+
+<p>I won’t go into the details of the inner workings of Wasm. Please refer to the <a href="https://webassembly.org/">official document</a>. In the context of this post, we could think of Wasm as a byte code that can be executed by a Wasm runtime engine; not too dissimilar to Java Virtual Machine (JVM), up to a point.</p>
+
+<p>The source code of a Wasm is raw text known as an assembly code. To illustrate a concept, we have a simple <code class="language-plaintext highlighter-rouge">math</code> module, written in Wasm assembly to perform some arithmetic operations: 1) add the two integer values, 2) multiply the sum by 10, and 3) export a method name <code class="language-plaintext highlighter-rouge">getAns</code> for a calling application to get results. Our Wasm aseembly is as follows:</p>
+
+<figure class="highlight"><pre><code class="language-wasm" data-lang="wasm">(module
+    (func $add (param $lhs i32) (param $rhs i32) (result i32)
+        local.get $lhs
+        local.get $rhs
+        i32.add)
+    (func $mul (param $value i32) (result i32)
+        local.get $value
+        i32.const 10
+        i32.mul
+    )
+    (func (export "getAns") (param $lhs i32) (param $rhs i32) (result i32)
+        local.get $lhs
+        local.get $rhs
+        call $add
+        call $mul)
+)</code></pre></figure>
+
+<p>For any practical applications, you will not likely be writing Wasm in assembly form. Chances are you would be compiling from a programming language like C/C++, Rust, Go and more. This is beyond the scope of this post and I suggest you refer to the Wasm <a href="https://webassembly.org/">official document</a> for details.</p>
+
+<p>The Wasm assembly as shown above will need to be compiled into byte codes. Let’s assumed that the assembly code is in a file name <code class="language-plaintext highlighter-rouge">math.wat</code>. You will run the command, <code class="language-plaintext highlighter-rouge">wat2wasm math.wat -o math.wasm</code> which will convert the assembly code into the following byte code found in the file <code class="language-plaintext highlighter-rouge">math.wasm</code>:</p>
+
+<figure class="highlight"><pre><code class="language-wasm" data-lang="wasm">0000000: 0061 736d                                 ; WASM_BINARY_MAGIC
+0000004: 0100 0000                                 ; WASM_BINARY_VERSION
+; section "Type" (1)
+0000008: 01                                        ; section code
+0000009: 00                                        ; section size (guess)
+000000a: 02                                        ; num types
+; func type 0
+000000b: 60                                        ; func
+000000c: 02                                        ; num params
+000000d: 7f                                        ; i32
+000000e: 7f                                        ; i32
+000000f: 01                                        ; num results
+0000010: 7f                                        ; i32
+; func type 1
+0000011: 60                                        ; func
+0000012: 01                                        ; num params
+0000013: 7f                                        ; i32
+0000014: 01                                        ; num results
+0000015: 7f                                        ; i32
+0000009: 0c                                        ; FIXUP section size
+; section "Function" (3)
+0000016: 03                                        ; section code
+0000017: 00                                        ; section size (guess)
+0000018: 03                                        ; num functions
+0000019: 00                                        ; function 0 signature index
+000001a: 01                                        ; function 1 signature index
+000001b: 00                                        ; function 2 signature index
+0000017: 04                                        ; FIXUP section size
+; section "Export" (7)
+000001c: 07                                        ; section code
+000001d: 00                                        ; section size (guess)
+000001e: 01                                        ; num exports
+000001f: 06                                        ; string length
+0000020: 6765 7441 6e73                           getAns  ; export name
+0000026: 00                                        ; export kind
+0000027: 02                                        ; export func index
+000001d: 0a                                        ; FIXUP section size
+; section "Code" (10)
+0000028: 0a                                        ; section code
+0000029: 00                                        ; section size (guess)
+000002a: 03                                        ; num functions
+; function body 0
+000002b: 00                                        ; func body size (guess)
+000002c: 00                                        ; local decl count
+000002d: 20                                        ; local.get
+000002e: 00                                        ; local index
+000002f: 20                                        ; local.get
+0000030: 01                                        ; local index
+0000031: 6a                                        ; i32.add
+0000032: 0b                                        ; end
+000002b: 07                                        ; FIXUP func body size
+; function body 1
+0000033: 00                                        ; func body size (guess)
+0000034: 00                                        ; local decl count
+0000035: 20                                        ; local.get
+0000036: 00                                        ; local index
+0000037: 41                                        ; i32.const
+0000038: 0a                                        ; i32 literal
+0000039: 6c                                        ; i32.mul
+000003a: 0b                                        ; end
+0000033: 07                                        ; FIXUP func body size
+; function body 2
+000003b: 00                                        ; func body size (guess)
+000003c: 00                                        ; local decl count
+000003d: 20                                        ; local.get
+000003e: 00                                        ; local index
+000003f: 20                                        ; local.get
+0000040: 01                                        ; local index
+0000041: 10                                        ; call
+0000042: 00                                        ; function index
+0000043: 10                                        ; call
+0000044: 01                                        ; function index
+0000045: 0b                                        ; end
+000003b: 0a                                        ; FIXUP func body size
+0000029: 1c                                        ; FIXUP section size</code></pre></figure>
+
+<h2 id="integrating-into-our-go-app">Integrating into our Go app</h2>
+
+<p>Wasm byte code is typically executed in a browser based or Javascript runtime engine. An example of a Wasm embedded in NodeJS is as shown here:</p>
+
+<figure class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="nx">require</span><span class="p">(</span><span class="dl">"</span><span class="s2">webassembly</span><span class="dl">"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="dl">"</span><span class="s2">./pub/math.wasm</span><span class="dl">"</span><span class="p">)</span>
+    <span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">module</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">));</span>
+    <span class="p">});</span></code></pre></figure>
+
+<p>To get Wasm byte code to run in Go, you can use this tool call <code class="language-plaintext highlighter-rouge">wasmer-go</code> and it is found in this repository <a href="https://github.com/wasmerio/wasmer-go">https://github.com/wasmerio/wasmer-go</a>.</p>
+
+<p>In our project for this post, our goal is to create a simple native app. Our implementation is as follows:</p>
+
+<figure class="highlight"><pre><code class="language-golang" data-lang="golang"><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"embed"</span>
+	<span class="s">"fmt"</span>
+
+	<span class="n">wasmer</span> <span class="s">"github.com/wasmerio/wasmer-go/wasmer"</span>
+<span class="p">)</span>
+
+<span class="c">//go:embed multi.wasm</span>
+<span class="k">var</span> <span class="n">f</span> <span class="n">embed</span><span class="o">.</span><span class="n">FS</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">wasmBytes</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">f</span><span class="o">.</span><span class="n">ReadFile</span><span class="p">(</span><span class="s">"multi.wasm"</span><span class="p">)</span>
+
+	<span class="n">engine</span> <span class="o">:=</span> <span class="n">wasmer</span><span class="o">.</span><span class="n">NewEngine</span><span class="p">()</span>
+	<span class="n">store</span> <span class="o">:=</span> <span class="n">wasmer</span><span class="o">.</span><span class="n">NewStore</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+
+	<span class="c">// Compiles the module</span>
+	<span class="n">module</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">wasmer</span><span class="o">.</span><span class="n">NewModule</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">wasmBytes</span><span class="p">)</span>
+
+	<span class="c">// Instantiates the module</span>
+	<span class="n">importObject</span> <span class="o">:=</span> <span class="n">wasmer</span><span class="o">.</span><span class="n">NewImportObject</span><span class="p">()</span>
+	<span class="n">instance</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">wasmer</span><span class="o">.</span><span class="n">NewInstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">importObject</span><span class="p">)</span>
+
+	<span class="c">// Gets the `add` exported function from the WebAssembly instance.</span>
+	<span class="n">getAns</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">instance</span><span class="o">.</span><span class="n">Exports</span><span class="o">.</span><span class="n">GetFunction</span><span class="p">(</span><span class="s">"getAns"</span><span class="p">)</span>
+
+	<span class="c">// Calls that exported function with Go standard values. The WebAssembly</span>
+	<span class="c">// types are inferred and values are casted automatically.</span>
+	<span class="n">result</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">getAns</span><span class="p">(</span><span class="m">1</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="c">// 42!</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>When you build this code – i.e. <code class="language-plaintext highlighter-rouge">go build</code> – it will generate a executable with the <code class="language-plaintext highlighter-rouge">math.wasm</code> file encoded.</p>
+
+<p>Through this approach, you now have the ability to integrate library written in other languages.</p>
+
+<h2 id="summing-up">Summing up</h2>
+
+<p>To sum it up, if you elect to integrate a library using other languages via Wasm into your Go app, the steps are:</p>
+
+<p>STEP 1: Generate a Wasm assembly and/or byte code using the tools from the offical source or third parties tool.</p>
+
+<p>STEP 2: Embed the <code class="language-plaintext highlighter-rouge">*.wasm</code> or byte code file into your app (Go v1.16 onwards use the embed package or appropriate tool for earlier version).</p>
+
+<p>STEP 3: Use the <code class="language-plaintext highlighter-rouge">wasmer-go</code> module as the basis of your Wasm runtime.</p>
+
+<p>STEP 4: Build your app as per the Go tools.</p>
+
+<p>Having learnt this approach to integrating Go app with non-Go libraries, you may feel that Wasm is the way to go, pardon the pun. For that, I shall leave it to you to decide.</p>
+
+<p>From my perspective, I see great potential for Wasm as a basis for a Smart Contract for multiple blockchain protocol but it is a topic I hope to share in future posts after my experimentation.</p>
+</div>
+  <div class="share-page">
+  <span style="float: left;">Share this on &rarr;&nbsp;&nbsp;</span>
+
+  <!-- Twitter -->
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="#">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+  <!-- Facebook -->
+  <!-- <div class="fb-share-button" data-href="https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html" data-layout="button_count" style="position: relative; top: -8px; left: 3px;"></div> -->
+</div>
+
+<!-- <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.6&appId=";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script> -->
+
+</div>
+
+
+  
+    
+      
+        
+          
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+            <div class="panel-body">
+              <h4>Related Posts</h4>
+              <ul>
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html">Creating and running docker container via Go SDK</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html">Ethereum Application Binary Interface (ABI) in Go</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/solidity">solidity</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html">Go and Rust array and slice -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html">Go and Rust workspace and modules -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html">Manipulating Docker containers via Go -- working with images</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html">Go and Rust package management -- my initial observations</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+          
+      
+    
+        
+          
+      
+          
+      
+    
+  
+  
+  </ul>
+</div>
+
+
+<div class="PageNavigation">
+  
+    <a class="prev" href="/go/docker/2021/08/20/go-docker-container.html">&laquo; Creating and running docker container via Go SDK</a>
+  
+  
+</div>
+
+<!-- <div class="disqus-comments">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var disqus_shortname = "";
+    var disqus_identifier = "https://paulwizviz.github.io_Embedding WebAssembly in Go app";
+    var disqus_title = "Embedding WebAssembly in Go app";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    /* ]]> */
+  </script> -->
+</div>
+
+        <footer>
+          &copy; Paul Sitoh
+          
+            - <a href="https://github.com/paulwizviz">https://github.com/paulwizviz</a> - Powered by Jekyll.
+          
+          <!-- <div class="btn-github" style="float:right;">
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=star&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=fork&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+          </div> -->
+        </footer>
+      </div>
+      <!-- end /.col-sm-8 -->
+    </div>
+    <!-- end /.container -->
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/super-search.js"></script>
+    <script src="/static/js/thickbox-compressed.js"></script>
+    <script src="/static/js/projects.js"></script>
+  </body>
+</html>
+

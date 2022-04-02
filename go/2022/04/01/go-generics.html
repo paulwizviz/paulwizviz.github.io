@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <title>Using Go generics - My coding projects and solutions</title>
+    <meta name="author" content="Paul Sitoh" />
+    <meta name="description" content="Using Go generics" />
+    <meta name="keywords" content="Using Go generics, My coding projects and solutions, go" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+    <meta content="" property="fb:app_id">
+    <meta content="My coding projects and solutions" property="og:site_name">
+
+    
+
+    
+      <meta content="Using Go generics" property="og:title">
+      <meta content="article" property="og:type">
+    
+
+    
+      <meta content="A blog about my coding projects and how I solve coding challenges." property="og:description">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/go/2022/04/01/go-generics.html" property="og:url">
+    
+
+    
+      <meta content="2022-04-01T19:32:00+01:00" property="article:published_time">
+      <meta content="https://paulwizviz.github.io/about/" property="article:author">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/static/img/posts/gopher.png" property="og:image">
+    
+
+    
+      
+        <meta content="go" property="article:section">
+      
+    
+
+    
+      
+    
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@#">
+    <meta name="twitter:creator" content="@#">
+
+    
+      <meta name="twitter:title" content="Using Go generics">
+    
+
+    
+      <meta name="twitter:url" content="https://paulwizviz.github.io/go/2022/04/01/go-generics.html">
+    
+
+    
+      <meta name="twitter:description" content="A blog about my coding projects and how I solve coding challenges.">
+    
+
+    
+
+    <!-- Font awesome icons -->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <!-- syntax highlighting CSS -->
+    <link rel="stylesheet" href="/static/css/syntax.css">
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300italic,300,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/super-search.css">
+    <link rel="stylesheet" href="/static/css/thickbox.css">
+    <link rel="stylesheet" href="/static/css/projects.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    
+  </head>
+  <body>
+    <div class="share-page">
+      <img src="https://paulwizviz.github.io/static/img/cover.jpg" height= 50% width=100%/>
+    </div>
+    <div class="container">
+      <div class="col-sm-3">
+        <div class="fixed-condition">
+          <h1 class="author-name"><a href="/">Paul Sitoh</a></h1>
+          
+            <div class="profile-about">
+              I'm a software engineer who enjoys coding principally in Go and where necessary other languages.
+            </div>
+          
+          <div class="social">
+            <ul>
+              
+                <li><a href="https://twitter.com/paulwizviz" target="_blank"><i class="fa fa-twitter"></i></a></li>
+              
+                <li><a href="https://www.linkedin.com/in/paul-s-7088b223/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              
+                <li><a href="https://github.com/paulwizviz" target="_blank"><i class="fa fa-github"></i></a></li>
+              
+            </ul>
+          </div>
+          <div class="search" id="js-search">
+            <input type="text" placeholder="(sitemap)~$ type to search" class="search__input form-control" id="js-search__input">
+            <ul class="search__results" id="js-search__results"></ul>
+          </div>
+          <hr />
+          <ul class="sidebar-nav">
+            <strong>Navigation</strong>
+            <li><a href="/">Home</a></li>
+            
+              <li><a class="about" href="/about/">About Me</a></li>
+            
+              <li><a class="about" href="/projects/">My Projects</a></li>
+            
+          </ul>
+        </div>
+        <!-- end /.fixed-condition -->
+      </div>
+      <div class="col-sm-8 col-offset-1 main-layout">
+        <header class="post-header">
+  <h1 class="post-title">Using Go generics</h1>
+</header>
+
+<span class="time">01 Apr 2022</span>
+
+  <span class="categories">
+    &raquo; <a href="/category/go">go</a>
+  </span>
+
+
+<div class="content">
+  
+  <div class="share-page">
+    <img src="https://paulwizviz.github.io/static/img/posts/gopher.png"/>
+  </div>
+  
+  <div class="post"><h2 id="about-this-post">About this post</h2>
+
+<p>Go version 1.18 includes generics. In this post, I will demonstrate an implementation of a binary tree data structure using generics.</p>
+
+<p>I will not go into detail about generics. You can refer to these:</p>
+
+<ul>
+  <li>
+    <p><a href="https://go.dev/doc/tutorial/generics">Tutorial: Getting started with generics</a>;</p>
+  </li>
+  <li>
+    <p><a href="https://bitfieldconsulting.com/golang/generics">Generics in Go</a>.</p>
+  </li>
+</ul>
+
+<h2 id="the-generic-binary-tree">The generic binary tree</h2>
+
+<p>The example in this post will demonstrate the following aspects of generics.</p>
+
+<ul>
+  <li>
+    <p>Using an interface to specify generic constraints;</p>
+  </li>
+  <li>
+    <p>Implementing a generic binary tree via interfaces;</p>
+  </li>
+  <li>
+    <p>Using generic in the context of callbacks;</p>
+  </li>
+  <li>
+    <p>Constraint the binary tree to work with all Go numeric types.</p>
+  </li>
+</ul>
+
+<h2 id="specifying-a-customer-generic-constraint-types">Specifying a customer generic constraint types</h2>
+
+<p>I have created a generic type as a template for all Go numeric types. The code is as follows:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="c">// NumericType is a generic type constrains consisting of Go numerics.</span>
+<span class="c">// NOTE: This is only for demonstration purpose only. There are a number</span>
+<span class="c">// of equivalent constraints in standard packages. One example is the</span>
+<span class="c">// `constraints` package. You can also use an alias to numeric constraints</span>
+<span class="c">// call `comparable`.</span>
+<span class="k">type</span> <span class="n">NumericType</span> <span class="k">interface</span> <span class="p">{</span>
+	<span class="kt">uint8</span> <span class="o">|</span> <span class="kt">uint16</span> <span class="o">|</span> <span class="kt">uint32</span> <span class="o">|</span> <span class="kt">uint64</span> <span class="o">|</span> <span class="kt">int8</span> <span class="o">|</span> <span class="kt">int16</span> <span class="o">|</span> <span class="kt">int32</span> <span class="o">|</span> <span class="kt">int64</span> <span class="o">|</span> <span class="kt">float32</span> <span class="o">|</span> <span class="kt">float64</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="implementating-the-generic-binary-tree">Implementating the generic binary tree</h2>
+
+<p>In my demonstrator, I have separate the interface of my binary tree from its implementation code.</p>
+
+<p>The interface of my binary tree looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="c">// Node[N model.NumericType] of a binary tree</span>
+<span class="k">type</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span> <span class="n">model</span><span class="o">.</span><span class="n">NumericType</span><span class="p">]</span> <span class="k">interface</span> <span class="p">{</span>
+
+	<span class="c">// Key returns the node's key</span>
+	<span class="n">Key</span><span class="p">()</span> <span class="n">N</span>
+
+	<span class="c">// Count the number of duplicate keys</span>
+	<span class="n">Count</span><span class="p">()</span> <span class="kt">uint32</span>
+
+	<span class="c">// AddCount to number of duplicate keys</span>
+	<span class="n">AddCount</span><span class="p">(</span><span class="n">count</span> <span class="kt">uint32</span><span class="p">)</span>
+
+	<span class="c">// Left return the left child</span>
+	<span class="n">Left</span><span class="p">()</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span>
+
+	<span class="c">// SetLeft child</span>
+	<span class="n">SetLeft</span><span class="p">(</span><span class="n">left</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">])</span>
+
+	<span class="c">// Right returns the right child</span>
+	<span class="n">Right</span><span class="p">()</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span>
+
+	<span class="c">// SetRight right child</span>
+	<span class="n">SetRight</span><span class="p">(</span><span class="n">left</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">])</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>In this case, I am using my customer generic type constraint <code class="language-plaintext highlighter-rouge">NumericType</code> specified in the package named <code class="language-plaintext highlighter-rouge">model</code>.</p>
+
+<p>I have implemented my binary tree node based on the above interface this way:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="c">// default implementation of a binary node using pointers.</span>
+<span class="c">// NOTE: This is not serializable.</span>
+<span class="k">type</span> <span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span> <span class="n">model</span><span class="o">.</span><span class="n">NumericType</span><span class="p">]</span> <span class="k">struct</span> <span class="p">{</span>
+	<span class="n">key</span>   <span class="n">N</span>
+	<span class="n">count</span> <span class="kt">uint32</span>
+	<span class="n">left</span>  <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span>
+	<span class="n">right</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="n">Key</span><span class="p">()</span> <span class="n">N</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">key</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">d</span> <span class="o">*</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="n">Count</span><span class="p">()</span> <span class="kt">uint32</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">d</span><span class="o">.</span><span class="n">count</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">d</span> <span class="o">*</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="n">AddCount</span><span class="p">(</span><span class="n">count</span> <span class="kt">uint32</span><span class="p">)</span> <span class="p">{</span>
+	<span class="n">d</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="n">count</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="n">Left</span><span class="p">()</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">left</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="n">SetLeft</span><span class="p">(</span><span class="n">left</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="p">{</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">left</span> <span class="o">=</span> <span class="n">left</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="n">Right</span><span class="p">()</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="n">p</span><span class="o">.</span><span class="n">right</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="p">(</span><span class="n">p</span> <span class="o">*</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="n">SetRight</span><span class="p">(</span><span class="n">right</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">])</span> <span class="p">{</span>
+	<span class="n">p</span><span class="o">.</span><span class="n">right</span> <span class="o">=</span> <span class="n">right</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>I have also created a default node builder like this:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="c">// NewDefaultNode instantiate a reference to adefault implementation</span>
+<span class="c">// of a Node</span>
+<span class="k">func</span> <span class="n">NewDefaultNode</span><span class="p">[</span><span class="n">N</span> <span class="n">model</span><span class="o">.</span><span class="n">NumericType</span><span class="p">](</span><span class="n">key</span> <span class="n">N</span><span class="p">)</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="n">defaultNode</span><span class="p">[</span><span class="n">N</span><span class="p">]{</span>
+		<span class="n">key</span><span class="o">:</span> <span class="n">key</span><span class="p">,</span>
+	<span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>This builder supports the creation of <code class="language-plaintext highlighter-rouge">defaultNodes</code> based on a range of numeric types.</p>
+
+<p>I have also created a callback type <code class="language-plaintext highlighter-rouge">NewNode</code> to support multiple builder types which looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="c">// NewNode[N model.NumericType] is a callback to an implementation to instantiate a node</span>
+<span class="k">type</span> <span class="n">NewNode</span><span class="p">[</span><span class="n">N</span> <span class="n">model</span><span class="o">.</span><span class="n">NumericType</span><span class="p">]</span> <span class="k">func</span><span class="p">(</span><span class="n">key</span> <span class="n">N</span><span class="p">)</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span></code></pre></figure>
+
+<p>I can use this call back to inject to node builder to make my generic binary tree <code class="language-plaintext highlighter-rouge">InsertNode</code> operations able to deal with several implementations. The code for my tree insertion looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="c">// InsertNode[N model.NumericType] an operation to insert a node in a binary tree.</span>
+<span class="k">func</span> <span class="n">InsertNode</span><span class="p">[</span><span class="n">N</span> <span class="n">model</span><span class="o">.</span><span class="n">NumericType</span><span class="p">](</span><span class="n">newNode</span> <span class="n">NewNode</span><span class="p">[</span><span class="n">N</span><span class="p">],</span> <span class="n">root</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">],</span> <span class="n">key</span> <span class="n">N</span><span class="p">)</span> <span class="n">Node</span><span class="p">[</span><span class="n">N</span><span class="p">]</span> <span class="p">{</span>
+
+	<span class="k">if</span> <span class="n">root</span> <span class="o">==</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">root</span> <span class="o">=</span> <span class="n">newNode</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span> <span class="o">==</span> <span class="n">key</span> <span class="p">{</span>
+		<span class="n">root</span><span class="o">.</span><span class="n">AddCount</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">Count</span><span class="p">()</span> <span class="o">+</span> <span class="m">1</span><span class="p">)</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">key</span> <span class="p">{</span>
+		<span class="n">root</span><span class="o">.</span><span class="n">SetRight</span><span class="p">(</span><span class="n">InsertNode</span><span class="p">(</span><span class="n">newNode</span><span class="p">,</span> <span class="n">root</span><span class="o">.</span><span class="n">Right</span><span class="p">(),</span> <span class="n">key</span><span class="p">))</span>
+	<span class="p">}</span>
+
+	<span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">Key</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">key</span> <span class="p">{</span>
+		<span class="n">root</span><span class="o">.</span><span class="n">SetLeft</span><span class="p">(</span><span class="n">InsertNode</span><span class="p">(</span><span class="n">newNode</span><span class="p">,</span> <span class="n">root</span><span class="o">.</span><span class="n">Left</span><span class="p">(),</span> <span class="n">key</span><span class="p">))</span>
+	<span class="p">}</span>
+
+	<span class="k">return</span> <span class="n">root</span>
+<span class="p">}</span></code></pre></figure>
+
+<h2 id="using-the-generic-binary-tree">Using the generic binary tree</h2>
+
+<p>Go generics is not unlike generics found in other languages such as C++ template. To use a generic, you must first instantiate with the underlying type.</p>
+
+<p>You can see an example demonstrating the steps in instantiating a <code class="language-plaintext highlighter-rouge">uint8</code> node here:</p>
+
+<figure class="highlight"><pre><code class="language-go" data-lang="go"><span class="k">func</span> <span class="n">Example_insertNode1</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">root</span> <span class="o">:=</span> <span class="n">InsertNode</span><span class="p">(</span><span class="n">NewDefaultNode</span><span class="p">[</span><span class="kt">uint8</span><span class="p">],</span> <span class="no">nil</span><span class="p">,</span> <span class="m">6</span><span class="p">)</span>
+
+	<span class="n">root</span> <span class="o">=</span> <span class="n">InsertNode</span><span class="p">(</span><span class="n">NewDefaultNode</span><span class="p">[</span><span class="kt">uint8</span><span class="p">],</span> <span class="n">root</span><span class="p">,</span> <span class="m">3</span><span class="p">)</span>
+	<span class="n">root</span> <span class="o">=</span> <span class="n">InsertNode</span><span class="p">(</span><span class="n">NewDefaultNode</span><span class="p">[</span><span class="kt">uint8</span><span class="p">],</span> <span class="n">root</span><span class="p">,</span> <span class="m">7</span><span class="p">)</span>
+
+	<span class="n">root</span> <span class="o">=</span> <span class="n">InsertNode</span><span class="p">(</span><span class="n">NewDefaultNode</span><span class="p">[</span><span class="kt">uint8</span><span class="p">],</span> <span class="n">root</span><span class="p">,</span> <span class="m">3</span><span class="p">)</span>
+	<span class="n">root</span> <span class="o">=</span> <span class="n">InsertNode</span><span class="p">(</span><span class="n">NewDefaultNode</span><span class="p">[</span><span class="kt">uint8</span><span class="p">],</span> <span class="n">root</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span>
+	<span class="n">root</span> <span class="o">=</span> <span class="n">InsertNode</span><span class="p">(</span><span class="n">NewDefaultNode</span><span class="p">[</span><span class="kt">uint8</span><span class="p">],</span> <span class="n">root</span><span class="p">,</span> <span class="m">8</span><span class="p">)</span>
+	<span class="n">root</span> <span class="o">=</span> <span class="n">InsertNode</span><span class="p">(</span><span class="n">NewDefaultNode</span><span class="p">[</span><span class="kt">uint8</span><span class="p">],</span> <span class="n">root</span><span class="p">,</span> <span class="m">4</span><span class="p">)</span>
+
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Level 0. Node: %v(%v)</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">root</span><span class="o">.</span><span class="n">Key</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Count</span><span class="p">())</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Level 1. Nodes: %v(%v) %v(%v)</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">root</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Key</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Count</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Key</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Count</span><span class="p">())</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Level 2. Nodes: %v(%v) %v(%v) %v(nil) %v(%v)"</span><span class="p">,</span> <span class="n">root</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Key</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Count</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Key</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Left</span><span class="p">()</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Count</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Left</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Key</span><span class="p">(),</span> <span class="n">root</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Right</span><span class="p">()</span><span class="o">.</span><span class="n">Count</span><span class="p">())</span>
+
+	<span class="c">// Output:</span>
+	<span class="c">// Level 0. Node: 6(1)</span>
+	<span class="c">// Level 1. Nodes: 3(2) 7(1)</span>
+	<span class="c">// Level 2. Nodes: 2(1) 4(1) &lt;nil&gt;(nil) 8(1)</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>You will notice a very useful feature of Go generic is the compiler ability to infer types being instantiated. For example the <code class="language-plaintext highlighter-rouge">InsertNode</code> operation does not require explicit declaration of the underlying type <code class="language-plaintext highlighter-rouge">uint8</code>. It can infer from the function arguments the underlying type. This feature reduce code verbosity.</p>
+
+<p>In the case of the call back function <code class="language-plaintext highlighter-rouge">NewDefaultNode</code>, it was necessary to instantiate with a specific type as the compiler could not infer the underlying type. We can simply instantiate the function by declaring it this way <code class="language-plaintext highlighter-rouge">NewDefaultNode[uint8]</code>.</p>
+
+<h2 id="my-view-of-go-generics">My view of Go generics</h2>
+
+<p>Based on my experience building the demonstrator, I found the syntax for declaring and instantiating generic types very easy. Admittedly, I have had the experience of using generics in other languages. So I already had the foundation to exploit this Go feature.</p>
+
+<p>However, I think anyone new to generics will find it easy to use this feature. The Go tooling will guide you by flagging potential errors at compile time, thus minimising errors at runtime. The challenge, which is not specific to Go, is deciding when it is appropriate to use generics.</p>
+</div>
+  <div class="share-page">
+  <span style="float: left;">Share this on &rarr;&nbsp;&nbsp;</span>
+
+  <!-- Twitter -->
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="#">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+  <!-- Facebook -->
+  <!-- <div class="fb-share-button" data-href="https://paulwizviz.github.io/go/2022/04/01/go-generics.html" data-layout="button_count" style="position: relative; top: -8px; left: 3px;"></div> -->
+</div>
+
+<!-- <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.6&appId=";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script> -->
+
+</div>
+
+
+  
+    
+      
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+            <div class="panel-body">
+              <h4>Related Posts</h4>
+              <ul>
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html">Embedding WebAssembly in Go app</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/webassembly">webassembly</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html">Creating and running docker container via Go SDK</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html">Ethereum Application Binary Interface (ABI) in Go</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/solidity">solidity</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html">Go and Rust array and slice -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html">Go and Rust workspace and modules -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html">Manipulating Docker containers via Go -- working with images</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+      
+    
+        
+          
+      
+    
+  
+  
+  </ul>
+</div>
+
+
+<div class="PageNavigation">
+  
+    <a class="prev" href="/go/webassembly/2021/08/24/embedding-webassembly-in-go.html">&laquo; Embedding WebAssembly in Go app</a>
+  
+  
+</div>
+
+<!-- <div class="disqus-comments">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var disqus_shortname = "";
+    var disqus_identifier = "https://paulwizviz.github.io_Using Go generics";
+    var disqus_title = "Using Go generics";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    /* ]]> */
+  </script> -->
+</div>
+
+        <footer>
+          &copy; Paul Sitoh
+          
+            - <a href="https://github.com/paulwizviz">https://github.com/paulwizviz</a> - Powered by Jekyll.
+          
+          <!-- <div class="btn-github" style="float:right;">
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=star&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=fork&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+          </div> -->
+        </footer>
+      </div>
+      <!-- end /.col-sm-8 -->
+    </div>
+    <!-- end /.container -->
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/super-search.js"></script>
+    <script src="/static/js/thickbox-compressed.js"></script>
+    <script src="/static/js/projects.js"></script>
+  </body>
+</html>
+

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <title>Design the architecture, name the components, document the details - My coding projects and solutions</title>
+    <meta name="author" content="Paul Sitoh" />
+    <meta name="description" content="Design the architecture, name the components, document the details" />
+    <meta name="keywords" content="Design the architecture, name the components, document the details, My coding projects and solutions, go" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+    <meta content="" property="fb:app_id">
+    <meta content="My coding projects and solutions" property="og:site_name">
+
+    
+
+    
+      <meta content="Design the architecture, name the components, document the details" property="og:title">
+      <meta content="article" property="og:type">
+    
+
+    
+      <meta content="A blog about my coding projects and how I solve coding challenges." property="og:description">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/go/2022/12/23/go-proverb-architecture.html" property="og:url">
+    
+
+    
+      <meta content="2022-12-23T14:08:00+00:00" property="article:published_time">
+      <meta content="https://paulwizviz.github.io/about/" property="article:author">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/static/img/posts/gopher.png" property="og:image">
+    
+
+    
+      
+        <meta content="go" property="article:section">
+      
+    
+
+    
+      
+    
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@#">
+    <meta name="twitter:creator" content="@#">
+
+    
+      <meta name="twitter:title" content="Design the architecture, name the components, document the details">
+    
+
+    
+      <meta name="twitter:url" content="https://paulwizviz.github.io/go/2022/12/23/go-proverb-architecture.html">
+    
+
+    
+      <meta name="twitter:description" content="A blog about my coding projects and how I solve coding challenges.">
+    
+
+    
+
+    <!-- Font awesome icons -->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <!-- syntax highlighting CSS -->
+    <link rel="stylesheet" href="/static/css/syntax.css">
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300italic,300,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/super-search.css">
+    <link rel="stylesheet" href="/static/css/thickbox.css">
+    <link rel="stylesheet" href="/static/css/projects.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    
+  </head>
+  <body>
+    <div class="share-page">
+      <img src="https://paulwizviz.github.io/static/img/cover.jpg" height= 50% width=100%/>
+    </div>
+    <div class="container">
+      <div class="col-sm-3">
+        <div class="fixed-condition">
+          <h1 class="author-name"><a href="/">Paul Sitoh</a></h1>
+          
+            <div class="profile-about">
+              I'm a software engineer who enjoys coding principally in Go and where necessary other languages.
+            </div>
+          
+          <div class="social">
+            <ul>
+              
+                <li><a href="https://twitter.com/paulwizviz" target="_blank"><i class="fa fa-twitter"></i></a></li>
+              
+                <li><a href="https://www.linkedin.com/in/paul-s-7088b223/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              
+                <li><a href="https://github.com/paulwizviz" target="_blank"><i class="fa fa-github"></i></a></li>
+              
+            </ul>
+          </div>
+          <div class="search" id="js-search">
+            <input type="text" placeholder="(sitemap)~$ type to search" class="search__input form-control" id="js-search__input">
+            <ul class="search__results" id="js-search__results"></ul>
+          </div>
+          <hr />
+          <ul class="sidebar-nav">
+            <strong>Navigation</strong>
+            <li><a href="/">Home</a></li>
+            
+              <li><a class="about" href="/about/">About Me</a></li>
+            
+              <li><a class="about" href="/projects/">My Projects</a></li>
+            
+          </ul>
+        </div>
+        <!-- end /.fixed-condition -->
+      </div>
+      <div class="col-sm-8 col-offset-1 main-layout">
+        <header class="post-header">
+  <h1 class="post-title">Design the architecture, name the components, document the details</h1>
+</header>
+
+<span class="time">23 Dec 2022</span>
+
+  <span class="categories">
+    &raquo; <a href="/category/go">go</a>
+  </span>
+
+
+<div class="content">
+  
+  <div class="share-page">
+    <img src="https://paulwizviz.github.io/static/img/posts/gopher.png"/>
+  </div>
+  
+  <div class="post"><h2 id="about-this-post">About this post</h2>
+
+<p>The Go programming language is easy to learn. Go has only about <a href="https://go101.org/article/keywords-and-identifiers.html">25 reserved words</a> as compared to <a href="https://en.wikipedia.org/wiki/List_of_Java_keywords">Java 67 (not including frameworks)</a> or <a href="https://www.programiz.com/csharp-programming/keywords-identifiers">C# 79</a>. The Go toolchain to compile Go codes, manage dependencies, generate documentation and perform the analysis is also very easy to use.</p>
+
+<p>After my initial and short exposure to Go, I was very comfortable using the language. I felt ready to work on a production-grade project using Go. However, I found architecting Go projects that promoted clean, clear, concise and maintainable code a challenge. When I embarked on my first project, there was little consensus on good architecture for Go projects. So I applied software engineering paradigms that I had learnt from my previous working experience, which was a mix of object-oriented and, sort of, functional programming. I had assumed that the paradigms were transferrable.</p>
+
+<p>Before using Go, I worked on projects based on Java, Objective-C, Swift, and Javascript. Applying the paradigms from these languages directly, I found, belatedly, as I evolved my Go projects, they became too complex and hard to maintain. I had layered stuff that I later discovered was unnecessary.</p>
+
+<p>To avoid that pitfall in future projects and use the Go language as intended, I decided to pivot and have a clean slate. So I delved into the philosophy behind the language’s creation and I turned to a presentation by Rob Pike, one of the creators of the language, where he presented the <a href="https://go-proverbs.github.io/">Go Proverbs</a>.</p>
+
+<p>The <a href="https://go-proverbs.github.io/">Go Proverbs</a> gave me the necessary philosophical foundation to break from my past and exploit the goodness of Go which I will share my thoughts in a series of blogs. In this post, I will address the aspect of the proverb titled <a href="https://www.youtube.com/watch?v=PAAkCSZUG1c&amp;t=1089s">“design the architecture, name the components, document the details”</a>.</p>
+
+<h2 id="go-packages">Go packages</h2>
+
+<p>A Go package is the basic building block of a project. It is a folder containing one or more source files. A Go source file has the extension <code class="language-plaintext highlighter-rouge">*.go</code>. The Go source files are organised as either part of a <code class="language-plaintext highlighter-rouge">main</code> package or a named package.</p>
+
+<p>A <code class="language-plaintext highlighter-rouge">main</code> package contains a source file or files with the signature <code class="language-plaintext highlighter-rouge">package main</code> and one <code class="language-plaintext highlighter-rouge">main</code> function. The folder containing such files can have names different from its package signature. There is no requirement for these folders to be specifically named <code class="language-plaintext highlighter-rouge">main</code>.</p>
+
+<p>A named package contains a source file or files with a signature that matches its containing folder. For example, source files with a signature <code class="language-plaintext highlighter-rouge">package something</code> must be found under this folder named <code class="language-plaintext highlighter-rouge">something</code>, like so:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  /something
+    source.go &lt;-- contain "package something" at the top of the file
+</code></pre></div></div>
+
+<p>With some exceptions that I will not discuss here, Go is not opinionated about naming packages or naming source files in each package, thus I found myself confronted with these questions:</p>
+
+<ul>
+  <li>How should I group my source files into a Go package?</li>
+  <li>How should I name my Go packages and their source files?</li>
+  <li>If we have more than one package, how should I aggregate them?</li>
+  <li>How do I export or avoid exporting Go packages for used by other projects?</li>
+  <li>How do I use Go packages and their contents to model the solution my project is intended to implement concisely whilst minimising complexity?</li>
+</ul>
+
+<h2 id="deciding-what-to-include-in-and-naming-a-go-package">Deciding what to include in and naming a Go package</h2>
+
+<p>Let’s consider object-oriented programming using Java as an example. This is to give you a sense of how I applied what I discovered applying object-oriented paradigm (i.e. Java) to my early Go projects.</p>
+
+<p>A basic unit of Java code is an object. An object has a data field and method attached to it. I specify the structure (data fields and methods) of an object via a class. Java, and other object-oriented languages, have the concept of static data fields and member methods that are part of the class scope. A Java class (public) must match the name of the class it contains. I could group related Java classes under a Java package (some object-oriented languages refer to this as a namespace).</p>
+
+<p>On the whole, I found Java opinionated when naming and packaging things. When you name things, the project structure (director and files) are arranged and named accordingly. I also learned there is a broad consensus that Java is suited to Domain-Driven Design methodology. For example, you might find a close correlation between a Java class and an <code class="language-plaintext highlighter-rouge">Entity</code> in the context of Domain-Driven Design. And when I was working on Java projects, I applied Domain-Driven Design, often unconsciously, when architecting my projects.</p>
+
+<p>In the case of Go, the equivalent of a class is known as a <code class="language-plaintext highlighter-rouge">struct</code> where I could associate it with functions to create kind of member methods<sup>1</sup>. However, unlike Java classes, a Go <code class="language-plaintext highlighter-rouge">struct</code> does not support inheritance or polymorphism. After suffering many Go projects pains, I belatedly discovered it was possible to declare a function type and associate that type to a method. Kind of like giving a function-type member method. I would use the feature to override the behaviour of a function to mimic Java member methods override. I attribute not knowing the Go feature to my dogmatic application of the object-oriented viewpoint. It is beyond the scope of this blog to explain how I use the function type method. I will discuss this feature in future blogs. Suffice it to say using that feature made my code more concise.</p>
+
+<p>Also unlike a Java class, a <code class="language-plaintext highlighter-rouge">struct</code> name need not match the file name that contains it.</p>
+
+<p>A Go package name and its content have a coupled relationship. So if I wanted to consume the function <code class="language-plaintext highlighter-rouge">Now()</code> in the standard library package <code class="language-plaintext highlighter-rouge">time</code>, I will have to call it this way <code class="language-plaintext highlighter-rouge">time.Now()</code>. I learned that I could use this coupling property to mimic the concept of static variables and methods found in Java. But I also found using it that way had lots of unintended consequences when used in the context of concurrency.</p>
+
+<p>When it comes to naming things in a Go package, I learned that it is not as opinionated as Java. So the early days of my Go coding journey, I often had to ask myself how to name things that do not make my code hard to read. To address this question, I follow the official Go package naming convention described in the <a href="https://go.dev/blog/package-names">Go blog</a>, and I will summarise here<sup>2</sup>:</p>
+
+<ul>
+  <li>package names are lowercase with no underscore or mixed caps (but the Go compiler will accept these names);</li>
+  <li>package names are short and clear often simple nouns;</li>
+  <li>avoid ambiguous names, such as <code class="language-plaintext highlighter-rouge">util</code> or <code class="language-plaintext highlighter-rouge">common</code>, be specific;</li>
+  <li>avoid repeating the content and package name, for example, the server – e.g. function name – provided by the package <code class="language-plaintext highlighter-rouge">http</code> should be called <code class="language-plaintext highlighter-rouge">Server</code> not <code class="language-plaintext highlighter-rouge">HttpServer</code> so when the function is called, it will be <code class="language-plaintext highlighter-rouge">http.Server</code> instead of <code class="language-plaintext highlighter-rouge">http.HttpServer</code> which would suggest that under the http package, there might be other http server.</li>
+</ul>
+
+<p>As part of the exercise in naming things, I needed to identify things I wanted to build, and this meant I needed to decide what I wanted my Go package and its content to represent. I learned there was no consensus in the Go community on ways to model things.</p>
+
+<p>For small projects, my approach was to group related code elements (<code class="language-plaintext highlighter-rouge">structs</code>, functions, etc.) under Go packages on an ad-hoc basis. I would start with a single Go package and then refactor as the project evolved. However, for large projects such as building microservices and involving a team of developers, this technique was hard to practice.</p>
+
+<p>The Domain-Driven Design methodology is a popular approach for projects building microservices. However, there are some reservations amongst the Go community about the applicability of this methodology. Nevertheless, I use some aspects of Domain-Driven Design methodology to guide me when creating Go packages and their content. It gave my project a consistent structure, but I had to apply the technique cautiously. As Go is not a fully object-oriented programming language adopting Domain-Driven Design could compromise the feature of Go that makes it easy to create concurrent solutions. As to why I found it necessary to use Domain-Driven Design methodology carefully, it is a topic that requires a separate blog. The reasoning requires a nuanced explanation that is not appropriate for this blog.</p>
+
+<h2 id="the-standard-go-project-layout">The Standard Go Project Layout</h2>
+
+<p>Often I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I may also need to export my Go packages or not export my Go packages. These are decisions related to project layout. There are two types; library-oriented and service-oriented projects.</p>
+
+<p>A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template known as <a href="https://github.com/golang-standards/project-layout">Standard Go Project Layout</a><sup>3</sup>. The template offers these great features.</p>
+
+<ul>
+  <li>It is a widely accepted pattern in Go communities and applying it reduces cognitive overload when onboarding a Go developer that is new to your project.</li>
+  <li>It offers features that you can adapt to a library-oriented or service-oriented project.</li>
+  <li>It can accommodate non-Go artefacts (build script or other languages) alongside Go packages whilst maintaining a clear separation of purpose.</li>
+</ul>
+
+<p><u>Library-oriented</u></p>
+
+<p>A Go library (also known as a Go module) is a collection of Go source codes or Go packages I use to share with other projects. There are three main types:</p>
+
+<ul>
+  <li>a single package library;</li>
+  <li>a multi-package library;</li>
+  <li>a generated library.</li>
+</ul>
+
+<p>In the case of a single package library, I treat my Go package as the equivalent of the root of a source code repository. The source files are laid out flat in the code repository with its name for the Go package name. You can see an example in <a href="https://github.com/spf13/cobra">Corbra library</a>.</p>
+
+<p>A multi-package library is a collection of Go packages. I could lay out the Go packages in a code repository :</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository&gt;/
+  fibgen/  &lt;-- Go package containing functions to generate fibonacci sequence
+  cryptoutil/ &lt;-- Go package containing functions to generate cryptographic keys
+  README.md
+  go.mod
+</code></pre></div></div>
+
+<p>However, I prefer a layout using the <code class="language-plaintext highlighter-rouge">pkg</code> arrangement described in the Standard Go Project Layout. So I would lay out my Go packages to look like this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository name&gt;/
+  docs/
+  examples/
+  pkg/
+    fibgen/
+    cryptoutil/
+  README.md
+  go.mod
+</code></pre></div></div>
+
+<p>My preferred layout has the advantage of differentiating Go packages under <code class="language-plaintext highlighter-rouge">pkg</code> folder from <code class="language-plaintext highlighter-rouge">docs</code> containing markdowns or <code class="language-plaintext highlighter-rouge">examples</code> containing runnable examples. I tend to use this layout where I generate the library codes from some third-party specifications such as <code class="language-plaintext highlighter-rouge">protobuf</code>. My project layout would look like this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository&gt;/
+  build/
+  docs/
+  pkg/
+    pb/  &lt;-- generate Go package from protos
+  protos/
+    model.proto &lt;-- protobuf spec
+  /scripts &lt;-- script to kick off the build process
+  README.md
+  go.mod
+</code></pre></div></div>
+
+<p><u>Service-oriented</u></p>
+
+<p>In the case of service-oriented layout for projects building one or more executable binaries, one approach to laying out a project is:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository&gt;/
+   utility.go
+   main.go &lt;-- contain only main function
+   go.mod
+</code></pre></div></div>
+<p>However, this is only for small projects involving only one <code class="language-plaintext highlighter-rouge">main</code> package.</p>
+
+<p>A more realistic project will involve not just Go codes but also non-Go artefacts like build or deployment scripts. Some projects may also involve multiple executables running in a platform or clusters of containers. For this type of project, I would layout the project like this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository&gt;/
+  build/
+  deployment/
+  cmd/ &lt;-- folder containing multiple main packages
+    service_a/
+        internal/ &lt;-- Go packages primarily for service_a only
+          restapi/
+      main.go
+    service_b/
+        internal/
+          restapi/
+      main.go
+  docs/
+  internal/ &lt;-- share but not exportable Go packages for service_a and service_b
+    fibgen/
+    cryptoutil/
+  scripts/
+  README.md
+  go.mod
+</code></pre></div></div>
+<p>I could also combine Go with other languages. Please check out my example <a href="https://github.com/paulwizviz/go-web">here</a>. It demonstrates a service-oriented project that combines Go with ReactJS source codes.</p>
+
+<h2 id="document-the-details">Document the details</h2>
+
+<p>Go emphasises short package names. The consensus amongst the Go community is that it keeps code compact. Some have argued that naming Go packages with short names is not helpful as readers cannot glean its context. Fortunately, the Go toolchain makes it easy to document and add details to Go package names and their content.</p>
+
+<p>I can add detail about a Go package via <code class="language-plaintext highlighter-rouge">godoc</code> style documentation in Go codes. Here is an example of documentation about a Go package:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// Package sort provides primitives for sorting slices and user-defined</span>
+<span class="c">// collections.</span>
+<span class="k">package</span> <span class="n">sort</span>
+</code></pre></div></div>
+
+<p>The same applies to the content of a Go package. I could document shown in this example:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// Fprint formats using the default formats for its operands and writes to w.</span>
+<span class="c">// Spaces are added between operands when neither is a string.</span>
+<span class="c">// It returns the number of bytes written and any write error encountered.</span>
+<span class="k">func</span> <span class="n">Fprint</span><span class="p">(</span><span class="n">w</span> <span class="n">io</span><span class="o">.</span><span class="n">Writer</span><span class="p">,</span> <span class="n">a</span> <span class="o">...</span><span class="k">interface</span><span class="p">{})</span> <span class="p">(</span><span class="n">n</span> <span class="kt">int</span><span class="p">,</span> <span class="n">err</span> <span class="kt">error</span><span class="p">)</span> <span class="p">{</span>
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">godoc</code> format is not the only way to present details about a Go package and its contents. Readers might prefer information in other forms, as Rob Pike noted in another Go proverb, <a href="https://www.youtube.com/watch?v=PAAkCSZUG1c&amp;t=1147s">documentation is for users</a>. With a few keystrokes of the <code class="language-plaintext highlighter-rouge">godoc</code> command, part of the Go toolchain, documentation about packages can be displayed in a web browser (see Figure 1) for a more human-readable and searchable form.</p>
+
+<figure style="padding-top:20px; padding-bottom:20px">
+  <img src="https://paulwizviz.github.io/static/img/posts/godoc-web.png" />
+  <figcaption>Figure 1: Displaying documentation in web</figcaption>
+</figure>
+
+<p>The same information about a specific Go package can also be displayed from the <code class="language-plaintext highlighter-rouge">godoc</code> cli (see Figure 2).</p>
+
+<figure style="padding-top:20px; padding-bottom:20px">
+  <img src="https://paulwizviz.github.io/static/img/posts/godoc-cli.png" />
+  <figcaption>Figure 2: Displaying documentation in cli</figcaption>
+</figure>
+
+<p>I found using <code class="language-plaintext highlighter-rouge">godoc</code> formatting a great way of enabling others to learn about my Go packages and their content and is sufficient for library-oriented projects. However, for service-oriented projects where I had to build artefacts, perform tests and deploy, I would include a <code class="language-plaintext highlighter-rouge">README.md</code> and a <code class="language-plaintext highlighter-rouge">docs</code> folder following the Standard Go Project Layout template. Sometimes, I find it useful also to add <code class="language-plaintext highlighter-rouge">examples</code> to help others who are maintaining my code appreciate the content. My recommended layout is this:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository&gt;/
+  docs/
+    deployment.md
+    test.md
+    build.md
+  examples/
+  README.md
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>To summarise, for any Go projects and putting Rob Pike’s proverb on architecture, naming things and documentation into action, I recommend these principles when you work with Go:</p>
+
+<ul>
+  <li>Use short, clear, and concise names for your Go packages and their content.</li>
+  <li>Do not replicate paradigms from other languages blindly.</li>
+  <li>Use the Standard Go Project Layout as the guide to lay out your project.</li>
+  <li>Domain-Driven Design methodology can help you structure your project but use it carefully and not compromise Go’s concurrency feature.</li>
+  <li>Use <code class="language-plaintext highlighter-rouge">godoc</code> and markdowns to document things.</li>
+</ul>
+
+<h2 id="notes">Notes</h2>
+
+<ol>
+  <li>Go technically does not have member methods like other object-oriented prorgamming language. It is a function with the associated type as a parameter.</li>
+  <li>Out-of-box Go toolchain does not enforce the official Go package naming convention.</li>
+  <li>Despite the name Standard Go Project Layout, it is not an official standard created by the Go core language developement team. You should not assumed that the Go toolchain is going to enforce this layout. The template probably drew inspiration from the hexagon architecture pattern presented by <a href="https://en.wikipedia.org/wiki/Alistair_Cockburn">Alistair Cockburn</a>.</li>
+</ol>
+</div>
+  <div class="share-page">
+  <span style="float: left;">Share this on &rarr;&nbsp;&nbsp;</span>
+
+  <!-- Twitter -->
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="#">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+  <!-- Facebook -->
+  <!-- <div class="fb-share-button" data-href="https://paulwizviz.github.io/go/2022/12/23/go-proverb-architecture.html" data-layout="button_count" style="position: relative; top: -8px; left: 3px;"></div> -->
+</div>
+
+<!-- <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.6&appId=";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script> -->
+
+</div>
+
+
+  
+    
+      
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+            <div class="panel-body">
+              <h4>Related Posts</h4>
+              <ul>
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/2022/04/01/go-generics.html">Using Go generics</a>
+                  
+                    (Categories: <a href="/category/go">go</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html">Embedding WebAssembly in Go app</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/webassembly">webassembly</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html">Creating and running docker container via Go SDK</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html">Ethereum Application Binary Interface (ABI) in Go</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/solidity">solidity</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html">Go and Rust array and slice -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html">Go and Rust workspace and modules -- a comparison</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+      
+    
+        
+          
+      
+    
+  
+  
+  </ul>
+</div>
+
+
+<div class="PageNavigation">
+  
+    <a class="prev" href="/go/2022/04/01/go-generics.html">&laquo; Using Go generics</a>
+  
+  
+</div>
+
+<!-- <div class="disqus-comments">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var disqus_shortname = "";
+    var disqus_identifier = "https://paulwizviz.github.io_Design the architecture, name the components, document the details";
+    var disqus_title = "Design the architecture, name the components, document the details";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    /* ]]> */
+  </script> -->
+</div>
+
+        <footer>
+          &copy; Paul Sitoh
+          
+            - <a href="https://github.com/paulwizviz">https://github.com/paulwizviz</a> - Powered by Jekyll.
+          
+          <!-- <div class="btn-github" style="float:right;">
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=star&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=fork&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+          </div> -->
+        </footer>
+      </div>
+      <!-- end /.col-sm-8 -->
+    </div>
+    <!-- end /.container -->
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/super-search.js"></script>
+    <script src="/static/js/thickbox-compressed.js"></script>
+    <script src="/static/js/projects.js"></script>
+  </body>
+</html>
+

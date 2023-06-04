@@ -203,14 +203,13 @@
 
 <p>The Domain-Driven Design methodology is a popular approach for projects building microservices. However, there are some reservations amongst the Go community about the applicability of this methodology. Nevertheless, I use some aspects of Domain-Driven Design methodology to guide me when creating Go packages and their content. It gave my project a consistent structure, but I had to apply the technique cautiously. As Go is not a fully object-oriented programming language adopting Domain-Driven Design could compromise the feature of Go that makes it easy to create concurrent solutions. As to why I found it necessary to use Domain-Driven Design methodology carefully, it is a topic that requires a separate blog. The reasoning requires a nuanced explanation that is not appropriate for this blog.</p>
 
-<h2 id="the-standard-go-project-layout">The Standard Go Project Layout</h2>
+<h2 id="organising-your-project-structure">Organising your project structure</h2>
 
 <p>Often I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I may also need to export my Go packages or not export my Go packages. These are decisions related to project layout. There are two types; library-oriented and service-oriented projects.</p>
 
-<p>A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template known as <a href="https://github.com/golang-standards/project-layout">Standard Go Project Layout</a><sup>3</sup>. The template offers these great features.</p>
+<p>A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template controversially known as the <a href="https://github.com/golang-standards/project-layout">Standard Go Project Layout</a><sup>3</sup>. The template offers clues to how to structure your project:</p>
 
 <ul>
-  <li>It is a widely accepted pattern in Go communities and applying it reduces cognitive overload when onboarding a Go developer that is new to your project.</li>
   <li>It offers features that you can adapt to a library-oriented or service-oriented project.</li>
   <li>It can accommodate non-Go artefacts (build script or other languages) alongside Go packages whilst maintaining a clear separation of purpose.</li>
 </ul>

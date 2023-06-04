@@ -5,8 +5,8 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 26 Dec 2022 11:30:17 +0000</pubDate>
-    <lastBuildDate>Mon, 26 Dec 2022 11:30:17 +0000</lastBuildDate>
+    <pubDate>Sun, 04 Jun 2023 17:49:54 +0100</pubDate>
+    <lastBuildDate>Sun, 04 Jun 2023 17:49:54 +0100</lastBuildDate>
     <generator>Jekyll v3.9.2</generator>
     
       <item>
@@ -74,14 +74,13 @@
 
 &lt;p&gt;The Domain-Driven Design methodology is a popular approach for projects building microservices. However, there are some reservations amongst the Go community about the applicability of this methodology. Nevertheless, I use some aspects of Domain-Driven Design methodology to guide me when creating Go packages and their content. It gave my project a consistent structure, but I had to apply the technique cautiously. As Go is not a fully object-oriented programming language adopting Domain-Driven Design could compromise the feature of Go that makes it easy to create concurrent solutions. As to why I found it necessary to use Domain-Driven Design methodology carefully, it is a topic that requires a separate blog. The reasoning requires a nuanced explanation that is not appropriate for this blog.&lt;/p&gt;
 
-&lt;h2 id=&quot;the-standard-go-project-layout&quot;&gt;The Standard Go Project Layout&lt;/h2&gt;
+&lt;h2 id=&quot;organising-your-project-structure&quot;&gt;Organising your project structure&lt;/h2&gt;
 
 &lt;p&gt;Often I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I may also need to export my Go packages or not export my Go packages. These are decisions related to project layout. There are two types; library-oriented and service-oriented projects.&lt;/p&gt;
 
-&lt;p&gt;A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template known as &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt;&lt;sup&gt;3&lt;/sup&gt;. The template offers these great features.&lt;/p&gt;
+&lt;p&gt;A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template controversially known as the &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt;&lt;sup&gt;3&lt;/sup&gt;. The template offers clues to how to structure your project:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;It is a widely accepted pattern in Go communities and applying it reduces cognitive overload when onboarding a Go developer that is new to your project.&lt;/li&gt;
   &lt;li&gt;It offers features that you can adapt to a library-oriented or service-oriented project.&lt;/li&gt;
   &lt;li&gt;It can accommodate non-Go artefacts (build script or other languages) alongside Go packages whilst maintaining a clear separation of purpose.&lt;/li&gt;
 &lt;/ul&gt;

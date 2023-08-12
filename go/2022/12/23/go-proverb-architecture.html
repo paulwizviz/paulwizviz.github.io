@@ -29,7 +29,7 @@
     
 
     
-      <meta content="2022-12-23T14:08:00+00:00" property="article:published_time">
+      <meta content="2022-12-23T22:08:00+08:00" property="article:published_time">
       <meta content="https://paulwizviz.github.io/about/" property="article:author">
     
 
@@ -144,17 +144,17 @@
 
 <p>The Go programming language is easy to learn. Go has only about <a href="https://go101.org/article/keywords-and-identifiers.html">25 reserved words</a> as compared to <a href="https://en.wikipedia.org/wiki/List_of_Java_keywords">Java 67 (not including frameworks)</a> or <a href="https://www.programiz.com/csharp-programming/keywords-identifiers">C# 79</a>. The Go toolchain to compile Go codes, manage dependencies, generate documentation and perform the analysis is also very easy to use.</p>
 
-<p>After my initial and short exposure to Go, I was very comfortable using the language. I felt ready to work on a production-grade project using Go. However, I found architecting Go projects that promoted clean, clear, concise and maintainable code a challenge. When I embarked on my first project, there was little consensus on good architecture for Go projects. So I applied software engineering paradigms that I had learnt from my previous working experience, which was a mix of object-oriented and, sort of, functional programming. I had assumed that the paradigms were transferrable.</p>
+<p>I was introduce to Go after years of working initially with Java, QT/C++, Objective C then Swift, and I was told that Go was to be the working lanugage from then on as employer had adopted that. Despite having no prior experience using Go, I became very comfortable using the language. I felt ready to work on a production-grade project using Go.</p>
 
-<p>Before using Go, I worked on projects based on Java, Objective-C, Swift, and Javascript. Applying the paradigms from these languages directly, I found, belatedly, as I evolved my Go projects, they became too complex and hard to maintain. I had layered stuff that I later discovered was unnecessary.</p>
+<p>However, I found architecting Go projects that promoted clean, clear, concise and maintainable code a challenge. When I embarked on my first project, there was little consensus on good architecture for Go projects. So I applied architectural paradigms that I had learnt from my previous working experience, which was a mix of object-oriented and, sort of, functional programming. I had assumed, that in terms of architectural pattern, they were the same across all languages. However, I found, belatedly, as I evolved my Go projects, they became too complex and hard to maintain. I had layered stuff that I later discovered was unnecessary.</p>
 
-<p>To avoid that pitfall in future projects and use the Go language as intended, I decided to pivot and have a clean slate. So I delved into the philosophy behind the language’s creation and I turned to a presentation by Rob Pike, one of the creators of the language, where he presented the <a href="https://go-proverbs.github.io/">Go Proverbs</a>.</p>
+<p>To avoid that pitfall in future projects and use the Go language as intended by its designer, I decided to pivot and architect Go projects from a clean slate. So I delved into the philosophy behind the language’s creation. I turned to a presentation by Rob Pike, one of the creators of the language, where he presented the <a href="https://go-proverbs.github.io/">Go Proverbs</a>.</p>
 
 <p>The <a href="https://go-proverbs.github.io/">Go Proverbs</a> gave me the necessary philosophical foundation to break from my past and exploit the goodness of Go which I will share my thoughts in a series of blogs. In this post, I will address the aspect of the proverb titled <a href="https://www.youtube.com/watch?v=PAAkCSZUG1c&amp;t=1089s">“design the architecture, name the components, document the details”</a>.</p>
 
 <h2 id="go-packages">Go packages</h2>
 
-<p>A Go package is the basic building block of a project. It is a folder containing one or more source files. A Go source file has the extension <code class="language-plaintext highlighter-rouge">*.go</code>. The Go source files are organised as either part of a <code class="language-plaintext highlighter-rouge">main</code> package or a named package.</p>
+<p>A Go package is the basic building block of a project. It is a folder containing one or more source files. A Go source file is one with the extension <code class="language-plaintext highlighter-rouge">*.go</code>. The Go source files are organised as either part of a <code class="language-plaintext highlighter-rouge">main</code> package or a named package.</p>
 
 <p>A <code class="language-plaintext highlighter-rouge">main</code> package contains a source file or files with the signature <code class="language-plaintext highlighter-rouge">package main</code> and one <code class="language-plaintext highlighter-rouge">main</code> function. The folder containing such files can have names different from its package signature. There is no requirement for these folders to be specifically named <code class="language-plaintext highlighter-rouge">main</code>.</p>
 
@@ -176,19 +176,35 @@
 
 <h2 id="deciding-what-to-include-in-and-naming-a-go-package">Deciding what to include in and naming a Go package</h2>
 
-<p>Let’s consider object-oriented programming using Java as an example. This is to give you a sense of how I applied what I discovered applying object-oriented paradigm (i.e. Java) to my early Go projects.</p>
+<p>If you applied an object-oriented programming mindset, your instinct is organise your code around “classes”, a language construct you find in object-oriented languages such as Java or C#. The basic element of a class is a data structure and member methods. There are other more complex construct associated with classes in object-oriented langagues such as class (or static) methods, access protections (e.g. public, protected and private), and inheritence or polymorphism. I’ll discuss how these mechanisms impact architectural decisions in future blogs.</p>
 
-<p>A basic unit of Java code is an object. An object has a data field and method attached to it. I specify the structure (data fields and methods) of an object via a class. Java, and other object-oriented languages, have the concept of static data fields and member methods that are part of the class scope. A Java class (public) must match the name of the class it contains. I could group related Java classes under a Java package (some object-oriented languages refer to this as a namespace).</p>
+<p>Just focusing on mimicking object oriented classes, in the case of Go, the equivalent, very loosely, of a class is known as a <code class="language-plaintext highlighter-rouge">struct</code> representing the structure of a piece of data that could associate with functions representing member methods. A Go version of a class would look like this:</p>
 
-<p>On the whole, I found Java opinionated when naming and packaging things. When you name things, the project structure (director and files) are arranged and named accordingly. I also learned there is a broad consensus that Java is suited to Domain-Driven Design methodology. For example, you might find a close correlation between a Java class and an <code class="language-plaintext highlighter-rouge">Entity</code> in the context of Domain-Driven Design. And when I was working on Java projects, I applied Domain-Driven Design, often unconsciously, when architecting my projects.</p>
+<pre><code class="language-Go">type Person struct{
+  Name 
+}
 
-<p>In the case of Go, the equivalent of a class is known as a <code class="language-plaintext highlighter-rouge">struct</code> where I could associate it with functions to create kind of member methods<sup>1</sup>. However, unlike Java classes, a Go <code class="language-plaintext highlighter-rouge">struct</code> does not support inheritance or polymorphism. After suffering many Go projects pains, I belatedly discovered it was possible to declare a function type and associate that type to a method. Kind of like giving a function-type member method. I would use the feature to override the behaviour of a function to mimic Java member methods override. I attribute not knowing the Go feature to my dogmatic application of the object-oriented viewpoint. It is beyond the scope of this blog to explain how I use the function type method. I will discuss this feature in future blogs. Suffice it to say using that feature made my code more concise.</p>
+func (p Person) GreetsWith(message string){
+  fmt.Printf("%s greets with message: %s", p.Name, message)
+}
+</code></pre>
 
-<p>Also unlike a Java class, a <code class="language-plaintext highlighter-rouge">struct</code> name need not match the file name that contains it.</p>
+<p>However, it is worth noting that this approach to modelling a class is simply a syntatic sugar for this construct, in Go:</p>
 
-<p>A Go package name and its content have a coupled relationship. So if I wanted to consume the function <code class="language-plaintext highlighter-rouge">Now()</code> in the standard library package <code class="language-plaintext highlighter-rouge">time</code>, I will have to call it this way <code class="language-plaintext highlighter-rouge">time.Now()</code>. I learned that I could use this coupling property to mimic the concept of static variables and methods found in Java. But I also found using it that way had lots of unintended consequences when used in the context of concurrency.</p>
+<pre><code class="language-Go">type Person struct{}
 
-<p>When it comes to naming things in a Go package, I learned that it is not as opinionated as Java. So the early days of my Go coding journey, I often had to ask myself how to name things that do not make my code hard to read. To address this question, I follow the official Go package naming convention described in the <a href="https://go.dev/blog/package-names">Go blog</a>, and I will summarise here<sup>2</sup>:</p>
+func SendGreetings(p Person, message string){
+  fmt.Printf("%s greets with message: %s", p.Name, message)
+}
+</code></pre>
+
+<p>This second approach is a more functional approach where the variable <code class="language-plaintext highlighter-rouge">p</code> represents a receiver type.</p>
+
+<p>In my first Go project, I started organising my projects around object oriented style classes. However, as the project progressI found it increasingly complex to manage. For example, I found myself at times, creating packages that stuttered such as <code class="language-plaintext highlighter-rouge">person.Person</code> or packaging classes under some ambiguous names like <code class="language-plaintext highlighter-rouge">model</code> and resulting in classing names.</p>
+
+<p>As intended in the design of Go, a package name and its content have a coupled relationship. If you examine the standard library package <code class="language-plaintext highlighter-rouge">time</code>, and draw lesson from it, you will find that the package could be view as the equivalent of an object-oriented class. In that package you have a function call <code class="language-plaintext highlighter-rouge">Now()</code> which coupled with the package <code class="language-plaintext highlighter-rouge">time.Now()</code> reduces unnecessary stutter.</p>
+
+<p>If you follow the official Go package naming convention described in the <a href="https://go.dev/blog/package-names">Go blog</a>, it recommends:</p>
 
 <ul>
   <li>package names are lowercase with no underscore or mixed caps (but the Go compiler will accept these names);</li>
@@ -197,17 +213,33 @@
   <li>avoid repeating the content and package name, for example, the server – e.g. function name – provided by the package <code class="language-plaintext highlighter-rouge">http</code> should be called <code class="language-plaintext highlighter-rouge">Server</code> not <code class="language-plaintext highlighter-rouge">HttpServer</code> so when the function is called, it will be <code class="language-plaintext highlighter-rouge">http.Server</code> instead of <code class="language-plaintext highlighter-rouge">http.HttpServer</code> which would suggest that under the http package, there might be other http server.</li>
 </ul>
 
-<p>As part of the exercise in naming things, I needed to identify things I wanted to build, and this meant I needed to decide what I wanted my Go package and its content to represent. I learned there was no consensus in the Go community on ways to model things.</p>
+<p>The recommendations seemed to reinforce the idea that in the context of Go, it probably make sense to use package in lieu of classes. Consider the example of the class <code class="language-plaintext highlighter-rouge">Person</code>, we could model the it this way:</p>
 
-<p>For small projects, my approach was to group related code elements (<code class="language-plaintext highlighter-rouge">structs</code>, functions, etc.) under Go packages on an ad-hoc basis. I would start with a single Go package and then refactor as the project evolved. However, for large projects such as building microservices and involving a team of developers, this technique was hard to practice.</p>
+<pre><code class="language-Go">package person
 
-<p>The Domain-Driven Design methodology is a popular approach for projects building microservices. However, there are some reservations amongst the Go community about the applicability of this methodology. Nevertheless, I use some aspects of Domain-Driven Design methodology to guide me when creating Go packages and their content. It gave my project a consistent structure, but I had to apply the technique cautiously. As Go is not a fully object-oriented programming language adopting Domain-Driven Design could compromise the feature of Go that makes it easy to create concurrent solutions. As to why I found it necessary to use Domain-Driven Design methodology carefully, it is a topic that requires a separate blog. The reasoning requires a nuanced explanation that is not appropriate for this blog.</p>
+type Detail struct{
+  Firstname string
+  Surname   string
+}
+
+func SendGreetings(from Detail, to Detail, msg string) {
+  fmt.Printf("%s greets with message: %s", p.Name, msg)
+}
+</code></pre>
+
+<p>I could easily consume the package this way <code class="language-plaintext highlighter-rouge">person.Detail{}</code> or <code class="language-plaintext highlighter-rouge">person.SendGreetings(from, to, message)</code>. By treating packages in lieu of classes, and thus a collection of functions, I found that I could exploit the power of Go concurrency.</p>
+
+<p>What about the goodness of object-oriented programming? Inheritence and polymorphism, fine grained access controls?</p>
+
+<p>My view is the loss of object-orientation is more than compensated by Go features that the designer of the language intended it to be. Namely to keep things small and concurrency.</p>
 
 <h2 id="organising-your-project-structure">Organising your project structure</h2>
 
-<p>Often I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I may also need to export my Go packages or not export my Go packages. These are decisions related to project layout. There are two types; library-oriented and service-oriented projects.</p>
+<p>Having decided how I would use Go packages, the next challenge I found was how best to organise them in a project.</p>
 
-<p>A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template controversially known as the <a href="https://github.com/golang-standards/project-layout">Standard Go Project Layout</a><sup>3</sup>. The template offers clues to how to structure your project:</p>
+<p>When working on a project with some degree of complexity, I often found that I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I also find it necessary to decide whether to export my Go packages for consumption by other projects or not export my Go packages. In other words, these are decisions related to project layout. Based on my the projects I worked on, I found that there are two types of projects; a library-oriented project or a service-oriented project.</p>
+
+<p>A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template controversially known as the <a href="https://github.com/golang-standards/project-layout">Standard Go Project Layout</a><sup>1</sup>. The template offers clues to how to structure your project:</p>
 
 <ul>
   <li>It offers features that you can adapt to a library-oriented or service-oriented project.</li>
@@ -226,7 +258,7 @@
 
 <p>In the case of a single package library, I treat my Go package as the equivalent of the root of a source code repository. The source files are laid out flat in the code repository with its name for the Go package name. You can see an example in <a href="https://github.com/spf13/cobra">Corbra library</a>.</p>
 
-<p>A multi-package library is a collection of Go packages. I could lay out the Go packages in a code repository :</p>
+<p>A multi-package library is a collection of Go packages. I could lay out the Go packages like this:</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository&gt;/
   fibgen/  &lt;-- Go package containing functions to generate fibonacci sequence
@@ -235,7 +267,7 @@
   go.mod
 </code></pre></div></div>
 
-<p>However, I prefer a layout using the <code class="language-plaintext highlighter-rouge">pkg</code> arrangement described in the Standard Go Project Layout. So I would lay out my Go packages to look like this:</p>
+<p>However, I prefer a layout using the <code class="language-plaintext highlighter-rouge">pkg</code> arrangement. So I would lay out my Go packages that look like this:</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository name&gt;/
   docs/
@@ -263,7 +295,7 @@
 
 <p><u>Service-oriented</u></p>
 
-<p>In the case of service-oriented layout for projects building one or more executable binaries, one approach to laying out a project is:</p>
+<p>In the case of service-oriented layout for projects building one or more executable binaries, one approach to laying out a project like is:</p>
 
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;repository&gt;/
    utility.go
@@ -287,7 +319,7 @@
           restapi/
       main.go
   docs/
-  internal/ &lt;-- share but not exportable Go packages for service_a and service_b
+  internal/ &lt;-- share and exportable Go packages or an internal library for service_a and service_b
     fibgen/
     cryptoutil/
   scripts/
@@ -355,8 +387,6 @@
 <h2 id="notes">Notes</h2>
 
 <ol>
-  <li>Go technically does not have member methods like other object-oriented prorgamming language. It is a function with the associated type as a parameter.</li>
-  <li>Out-of-box Go toolchain does not enforce the official Go package naming convention.</li>
   <li>Despite the name Standard Go Project Layout, it is not an official standard created by the Go core language developement team. You should not assumed that the Go toolchain is going to enforce this layout. The template probably drew inspiration from the hexagon architecture pattern presented by <a href="https://en.wikipedia.org/wiki/Alistair_Cockburn">Alistair Cockburn</a>.</li>
 </ol>
 </div>
@@ -401,7 +431,7 @@
               <ul>
             
                 <li class="relatedPost">
-                  <a href="https://paulwizviz.github.io/go/2022/04/01/go-generics.html">Using Go generics</a>
+                  <a href="https://paulwizviz.github.io/go/2022/04/02/go-generics.html">Using Go generics</a>
                   
                     (Categories: <a href="/category/go">go</a>)
                   
@@ -418,7 +448,7 @@
           
             
                 <li class="relatedPost">
-                  <a href="https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html">Embedding WebAssembly in Go app</a>
+                  <a href="https://paulwizviz.github.io/go/webassembly/2021/08/25/embedding-webassembly-in-go.html">Embedding WebAssembly in Go app</a>
                   
                     (Categories: <a href="/category/go">go</a>, <a href="/category/webassembly">webassembly</a>)
                   
@@ -439,7 +469,7 @@
           
             
                 <li class="relatedPost">
-                  <a href="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html">Creating and running docker container via Go SDK</a>
+                  <a href="https://paulwizviz.github.io/go/docker/2021/08/21/go-docker-container.html">Creating and running docker container via Go SDK</a>
                   
                     (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
                   
@@ -460,7 +490,7 @@
           
             
                 <li class="relatedPost">
-                  <a href="https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html">Ethereum Application Binary Interface (ABI) in Go</a>
+                  <a href="https://paulwizviz.github.io/go/solidity/2021/08/01/go-solidity-abigen.html">Ethereum Application Binary Interface (ABI) in Go</a>
                   
                     (Categories: <a href="/category/go">go</a>, <a href="/category/solidity">solidity</a>)
                   
@@ -481,7 +511,7 @@
           
             
                 <li class="relatedPost">
-                  <a href="https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html">Go and Rust array and slice -- a comparison</a>
+                  <a href="https://paulwizviz.github.io/go/rust/2021/07/12/go-rust-array-slice.html">Go and Rust array and slice -- a comparison</a>
                   
                     (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
                   
@@ -502,7 +532,7 @@
           
             
                 <li class="relatedPost">
-                  <a href="https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html">Go and Rust workspace and modules -- a comparison</a>
+                  <a href="https://paulwizviz.github.io/go/rust/2021/07/01/go-rust-projects-layout.html">Go and Rust workspace and modules -- a comparison</a>
                   
                     (Categories: <a href="/category/go">go</a>, <a href="/category/rust">rust</a>)
                   
@@ -546,7 +576,7 @@
 
 <div class="PageNavigation">
   
-    <a class="prev" href="/go/2022/04/01/go-generics.html">&laquo; Using Go generics</a>
+    <a class="prev" href="/go/2022/04/02/go-generics.html">&laquo; Using Go generics</a>
   
   
 </div>

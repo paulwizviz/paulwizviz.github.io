@@ -5,8 +5,8 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sun, 13 Aug 2023 03:30:32 +0800</pubDate>
-    <lastBuildDate>Sun, 13 Aug 2023 03:30:32 +0800</lastBuildDate>
+    <pubDate>Mon, 14 Aug 2023 15:59:14 +0800</pubDate>
+    <lastBuildDate>Mon, 14 Aug 2023 15:59:14 +0800</lastBuildDate>
     <generator>Jekyll v3.9.2</generator>
     
       <item>
@@ -250,8 +250,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 &lt;ul&gt;
   &lt;li&gt;Use short, clear, and concise names for your Go packages and their content.&lt;/li&gt;
   &lt;li&gt;Do not replicate paradigms from other languages blindly.&lt;/li&gt;
-  &lt;li&gt;Use the Standard Go Project Layout as the guide to lay out your project.&lt;/li&gt;
-  &lt;li&gt;Domain-Driven Design methodology can help you structure your project but use it carefully and not compromise Go’s concurrency feature.&lt;/li&gt;
+  &lt;li&gt;When you layout your project, decide if you are working on a library based or a service base layout.&lt;/li&gt;
+  &lt;li&gt;For library based project, keep it flat and make it exportable.&lt;/li&gt;
+  &lt;li&gt;For Service based project, keep all packages internal, do not export any Go packages (keep the packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt;), and name any non Go packages appropriately (see the &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt; for &lt;strong&gt;inspiration only&lt;/strong&gt;).&lt;/li&gt;
   &lt;li&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;godoc&lt;/code&gt; and markdowns to document things.&lt;/li&gt;
 &lt;/ul&gt;
 

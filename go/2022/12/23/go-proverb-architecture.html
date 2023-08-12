@@ -379,8 +379,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 <ul>
   <li>Use short, clear, and concise names for your Go packages and their content.</li>
   <li>Do not replicate paradigms from other languages blindly.</li>
-  <li>Use the Standard Go Project Layout as the guide to lay out your project.</li>
-  <li>Domain-Driven Design methodology can help you structure your project but use it carefully and not compromise Go’s concurrency feature.</li>
+  <li>When you layout your project, decide if you are working on a library based or a service base layout.</li>
+  <li>For library based project, keep it flat and make it exportable.</li>
+  <li>For Service based project, keep all packages internal, do not export any Go packages (keep the packages under <code class="language-plaintext highlighter-rouge">main</code> or <code class="language-plaintext highlighter-rouge">internal</code>), and name any non Go packages appropriately (see the <a href="https://github.com/golang-standards/project-layout">Standard Go Project Layout</a> for <strong>inspiration only</strong>).</li>
   <li>Use <code class="language-plaintext highlighter-rouge">godoc</code> and markdowns to document things.</li>
 </ul>
 

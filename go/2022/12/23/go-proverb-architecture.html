@@ -223,7 +223,7 @@ type Detail struct{
 }
 
 func SendGreetings(from Detail, to Detail, msg string) {
-  fmt.Printf("%s greets with message: %s", p.Name, msg)
+  fmt.Printf("%s greets %s with message: %s", from.Name, to.Name, msg)
 }
 </code></pre>
 

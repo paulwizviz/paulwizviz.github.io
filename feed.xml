@@ -5,8 +5,8 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Mon, 14 Aug 2023 15:59:14 +0800</pubDate>
-    <lastBuildDate>Mon, 14 Aug 2023 15:59:14 +0800</lastBuildDate>
+    <pubDate>Tue, 15 Aug 2023 20:59:12 +0800</pubDate>
+    <lastBuildDate>Tue, 15 Aug 2023 20:59:12 +0800</lastBuildDate>
     <generator>Jekyll v3.9.2</generator>
     
       <item>
@@ -94,7 +94,7 @@ type Detail struct{
 }
 
 func SendGreetings(from Detail, to Detail, msg string) {
-  fmt.Printf(&quot;%s greets with message: %s&quot;, p.Name, msg)
+  fmt.Printf(&quot;%s greets %s with message: %s&quot;, from.Name, to.Name, msg)
 }
 &lt;/code&gt;&lt;/pre&gt;
 

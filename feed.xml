@@ -5,8 +5,8 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 15 Aug 2023 20:59:12 +0800</pubDate>
-    <lastBuildDate>Tue, 15 Aug 2023 20:59:12 +0800</lastBuildDate>
+    <pubDate>Tue, 22 Aug 2023 20:20:51 +0100</pubDate>
+    <lastBuildDate>Tue, 22 Aug 2023 20:20:51 +0100</lastBuildDate>
     <generator>Jekyll v3.9.2</generator>
     
       <item>
@@ -17,11 +17,9 @@
 
 &lt;p&gt;I was introduce to Go after years of working initially with Java, QT/C++, Objective C then Swift, and I was told that Go was to be the working lanugage from then on as employer had adopted that. Despite having no prior experience using Go, I became very comfortable using the language. I felt ready to work on a production-grade project using Go.&lt;/p&gt;
 
-&lt;p&gt;However, I found architecting Go projects that promoted clean, clear, concise and maintainable code a challenge. When I embarked on my first project, there was little consensus on good architecture for Go projects. So I applied architectural paradigms that I had learnt from my previous working experience, which was a mix of object-oriented and, sort of, functional programming. I had assumed, that in terms of architectural pattern, they were the same across all languages. However, I found, belatedly, as I evolved my Go projects, they became too complex and hard to maintain. I had layered stuff that I later discovered was unnecessary.&lt;/p&gt;
+&lt;p&gt;However, I found architecting Go projects that promoted clean, clear, concise and maintainable code challenging. When I worked on my first project, there was little consensus on good architecture for Go projects. So I applied architectural paradigms that I had learnt from my previous working experience, which was a mix of object-oriented and, sort of, functional programming. I had assumed that “good” architectural paradium transcend all programming languages. However, I found, belatedly that I could not apply architectural paradigm intended, for example, Java to Go. When I applied the Java way of organising code I ended up with a structure that was too complex and hard to maintain – i.e. deeply nested layers of abstractions.&lt;/p&gt;
 
-&lt;p&gt;To avoid that pitfall in future projects and use the Go language as intended by its designer, I decided to pivot and architect Go projects from a clean slate. So I delved into the philosophy behind the language’s creation. I turned to a presentation by Rob Pike, one of the creators of the language, where he presented the &lt;a href=&quot;https://go-proverbs.github.io/&quot;&gt;Go Proverbs&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;The &lt;a href=&quot;https://go-proverbs.github.io/&quot;&gt;Go Proverbs&lt;/a&gt; gave me the necessary philosophical foundation to break from my past and exploit the goodness of Go which I will share my thoughts in a series of blogs. In this post, I will address the aspect of the proverb titled &lt;a href=&quot;https://www.youtube.com/watch?v=PAAkCSZUG1c&amp;amp;t=1089s&quot;&gt;“design the architecture, name the components, document the details”&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To avoid repeating the mistakes for future projects, I pivoted from what I knew about organising projects and delved into the philosophy behind the Go’s creation. So I turned to a presentation by Rob Pike, one of the creators of the language, where he presented the &lt;a href=&quot;https://go-proverbs.github.io/&quot;&gt;Go Proverbs&lt;/a&gt;. The proverb gave me the necessary philosophical foundation to break from my past and exploit the goodness of Go which I will share my thoughts in a series of blogs. In this post, I will address the aspect of the proverb titled &lt;a href=&quot;https://www.youtube.com/watch?v=PAAkCSZUG1c&amp;amp;t=1089s&quot;&gt;“design the architecture, name the components, document the details”&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;go-packages&quot;&gt;Go packages&lt;/h2&gt;
 
@@ -49,7 +47,7 @@
 
 &lt;p&gt;If you applied an object-oriented programming mindset, your instinct is organise your code around “classes”, a language construct you find in object-oriented languages such as Java or C#. The basic element of a class is a data structure and member methods. There are other more complex construct associated with classes in object-oriented langagues such as class (or static) methods, access protections (e.g. public, protected and private), and inheritence or polymorphism. I’ll discuss how these mechanisms impact architectural decisions in future blogs.&lt;/p&gt;
 
-&lt;p&gt;Just focusing on mimicking object oriented classes, in the case of Go, the equivalent, very loosely, of a class is known as a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;struct&lt;/code&gt; representing the structure of a piece of data that could associate with functions representing member methods. A Go version of a class would look like this:&lt;/p&gt;
+&lt;p&gt;In the case of Go, the equivalent, very loosely, of a class is a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;struct&lt;/code&gt; representing the structure of a piece of data with a “member” function declared like this:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;language-Go&quot;&gt;type Person struct{
   Name 
@@ -60,7 +58,7 @@ func (p Person) GreetsWith(message string){
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;However, it is worth noting that this approach to modelling a class is simply a syntatic sugar for this construct, in Go:&lt;/p&gt;
+&lt;p&gt;However, it is worth noting that declaring a Go “class” as illustrated above is simply a syntatic sugar for this:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;language-Go&quot;&gt;type Person struct{}
 
@@ -71,11 +69,9 @@ func SendGreetings(p Person, message string){
 
 &lt;p&gt;This second approach is a more functional approach where the variable &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;p&lt;/code&gt; represents a receiver type.&lt;/p&gt;
 
-&lt;p&gt;In my first Go project, I started organising my projects around object oriented style classes. However, as the project progressI found it increasingly complex to manage. For example, I found myself at times, creating packages that stuttered such as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.Person&lt;/code&gt; or packaging classes under some ambiguous names like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;model&lt;/code&gt; and resulting in classing names.&lt;/p&gt;
+&lt;p&gt;Working on my first Go project, I started organising my code around object oriented style classes. I would then group these classes into Go packages, treating the packages as “namespaces” commonly found in object-oriented languages or, in some cases, a kind of miscellaneous folder for all kind of classes that did not fit into any grouping. However, as intended in the design of Go, a package name and its content have a coupled relationship. This means whenever you call a stucts or function you have to prefix it with a package name. Without much thought I found myself creating packages that were too nested and difficult to maintain or extend or exported for third parties use.&lt;/p&gt;
 
-&lt;p&gt;As intended in the design of Go, a package name and its content have a coupled relationship. If you examine the standard library package &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;time&lt;/code&gt;, and draw lesson from it, you will find that the package could be view as the equivalent of an object-oriented class. In that package you have a function call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Now()&lt;/code&gt; which coupled with the package &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;time.Now()&lt;/code&gt; reduces unnecessary stutter.&lt;/p&gt;
-
-&lt;p&gt;If you follow the official Go package naming convention described in the &lt;a href=&quot;https://go.dev/blog/package-names&quot;&gt;Go blog&lt;/a&gt;, it recommends:&lt;/p&gt;
+&lt;p&gt;In order to find source of good practices, I examined Go’s standard library package &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;time&lt;/code&gt;. In that package there is a function call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Now()&lt;/code&gt; which coupled with the package &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;time.Now()&lt;/code&gt;. If you follow the official Go package naming convention described in the &lt;a href=&quot;https://go.dev/blog/package-names&quot;&gt;Go blog&lt;/a&gt;, it recommends:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;package names are lowercase with no underscore or mixed caps (but the Go compiler will accept these names);&lt;/li&gt;
@@ -98,24 +94,17 @@ func SendGreetings(from Detail, to Detail, msg string) {
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;I could easily consume the package this way &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.Detail{}&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.SendGreetings(from, to, message)&lt;/code&gt;. By treating packages in lieu of classes, and thus a collection of functions, I found that I could exploit the power of Go concurrency.&lt;/p&gt;
+&lt;p&gt;I could easily consume the package this way &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.Detail{}&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.SendGreetings(from, to, message)&lt;/code&gt;. By treating packages in lieu of classes, treating functions in packages as forms of member methods, I found it easier to organise packages in a coherent fashion. What about the goodness of object-oriented programming? Inheritence and polymorphism?&lt;/p&gt;
 
-&lt;p&gt;What about the goodness of object-oriented programming? Inheritence and polymorphism, fine grained access controls?&lt;/p&gt;
-
-&lt;p&gt;My view is the loss of object-orientation is more than compensated by Go features that the designer of the language intended it to be. Namely to keep things small and concurrency.&lt;/p&gt;
+&lt;p&gt;My view is the loss of object-orientation is more than compensated by Go features that the designer of the language intended it to be. Namely to keep things small and appropriate for concurrency.&lt;/p&gt;
 
 &lt;h2 id=&quot;organising-your-project-structure&quot;&gt;Organising your project structure&lt;/h2&gt;
 
-&lt;p&gt;Having decided how I would use Go packages, the next challenge I found was how best to organise them in a project.&lt;/p&gt;
+&lt;p&gt;Having decided how I would create Go packages, the next challenge I found was how best to organise them in a project structure.&lt;/p&gt;
 
-&lt;p&gt;When working on a project with some degree of complexity, I often found that I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I also find it necessary to decide whether to export my Go packages for consumption by other projects or not export my Go packages. In other words, these are decisions related to project layout. Based on my the projects I worked on, I found that there are two types of projects; a library-oriented project or a service-oriented project.&lt;/p&gt;
+&lt;p&gt;When working on a project with some degree of complexity, I often found that I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I also find it necessary to decide whether to export my Go packages for consumption by other projects or not export my Go packages. In other words, these are decisions related to project layout. Based on the projects I have worked on, I found that there are basically two types of projects; a library-oriented project or a service-oriented project.&lt;/p&gt;
 
-&lt;p&gt;A library-oriented project is intended purely for sharing Go artefacts with other projects. Service-oriented projects are intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template controversially known as the &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt;&lt;sup&gt;1&lt;/sup&gt;. The template offers clues to how to structure your project:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;It offers features that you can adapt to a library-oriented or service-oriented project.&lt;/li&gt;
-  &lt;li&gt;It can accommodate non-Go artefacts (build script or other languages) alongside Go packages whilst maintaining a clear separation of purpose.&lt;/li&gt;
-&lt;/ul&gt;
+&lt;p&gt;A library-oriented project is intended purely for sharing Go artefacts with other projects. A Service-oriented project is intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template some describe as controversially or clumsily named &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt;&lt;sup&gt;1&lt;/sup&gt;. The template offers clues to a proper way of structuring a Go project.&lt;/p&gt;
 
 &lt;p&gt;&lt;u&gt;Library-oriented&lt;/u&gt;&lt;/p&gt;
 
@@ -150,16 +139,16 @@ func SendGreetings(from Detail, to Detail, msg string) {
   go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;My preferred layout has the advantage of differentiating Go packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; folder from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docs&lt;/code&gt; containing markdowns or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;examples&lt;/code&gt; containing runnable examples. I tend to use this layout where I generate the library codes from some third-party specifications such as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;protobuf&lt;/code&gt;. My project layout would look like this:&lt;/p&gt;
+&lt;p&gt;My preferred layout has the advantage of differentiating Go packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; folder from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docs&lt;/code&gt; containing markdowns or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;examples&lt;/code&gt; containing runnable examples. I also tend to use this layout where I would generate the library codes from a third-party specification such as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;protobuf&lt;/code&gt;. My project layout would look like this:&lt;/p&gt;
 
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
-  build/
+  build/ &amp;lt;-- contain generator scripts
   docs/
   pkg/
-    pb/  &amp;lt;-- generate Go package from protos
+    pb/  &amp;lt;-- generated Go package from protos
   protos/
     model.proto &amp;lt;-- protobuf spec
-  /scripts &amp;lt;-- script to kick off the build process
+  /scripts &amp;lt;-- script as hooks for users or CI/CD to kick off generator
   README.md
   go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
@@ -167,7 +156,6 @@ func SendGreetings(from Detail, to Detail, msg string) {
 &lt;p&gt;&lt;u&gt;Service-oriented&lt;/u&gt;&lt;/p&gt;
 
 &lt;p&gt;In the case of service-oriented layout for projects building one or more executable binaries, one approach to laying out a project like is:&lt;/p&gt;
-
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
    utility.go
    main.go &amp;lt;-- contain only main function
@@ -175,14 +163,14 @@ func SendGreetings(from Detail, to Detail, msg string) {
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 &lt;p&gt;However, this is only for small projects involving only one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; package.&lt;/p&gt;
 
-&lt;p&gt;A more realistic project will involve not just Go codes but also non-Go artefacts like build or deployment scripts. Some projects may also involve multiple executables running in a platform or clusters of containers. For this type of project, I would layout the project like this:&lt;/p&gt;
+&lt;p&gt;A more realistic project will involve not just Go codes but also non-Go artefacts like build or deployment scripts. Some projects may also involve building multiple executables. For this type of project, I would layout the project like this:&lt;/p&gt;
 
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
-  build/
-  deployment/
+  build/ &amp;lt;-- build scripts
+  deployment/ &amp;lt;-- k8s yaml manifest
   cmd/ &amp;lt;-- folder containing multiple main packages
     service_a/
-        internal/ &amp;lt;-- Go packages primarily for service_a only
+        internal/ &amp;lt;-- Go packages internal to service_a but not service_b
           restapi/
       main.go
     service_b/
@@ -190,14 +178,16 @@ func SendGreetings(from Detail, to Detail, msg string) {
           restapi/
       main.go
   docs/
-  internal/ &amp;lt;-- share and exportable Go packages or an internal library for service_a and service_b
+  internal/ &amp;lt;-- shared internal library codes for service_a and service_b
     fibgen/
     cryptoutil/
-  scripts/
+  scripts/ &amp;lt;-- script as hooks for users or CI/CD to kick off build process
   README.md
   go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;I could also combine Go with other languages. Please check out my example &lt;a href=&quot;https://github.com/paulwizviz/go-web&quot;&gt;here&lt;/a&gt;. It demonstrates a service-oriented project that combines Go with ReactJS source codes.&lt;/p&gt;
+&lt;p&gt;Note: The folder &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; has a special meaning in the case of Go. Packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; that may not be exported beyond adjacent folders.&lt;/p&gt;
+
+&lt;p&gt;The structure also enable me to combine Go with other languages in a coherent manner. Please check out my example &lt;a href=&quot;https://github.com/paulwizviz/go-web&quot;&gt;here&lt;/a&gt;. It demonstrates a service-oriented project that combines Go with ReactJS source codes clearly demarcated.&lt;/p&gt;
 
 &lt;h2 id=&quot;document-the-details&quot;&gt;Document the details&lt;/h2&gt;
 
@@ -252,7 +242,7 @@ func SendGreetings(from Detail, to Detail, msg string) {
   &lt;li&gt;Do not replicate paradigms from other languages blindly.&lt;/li&gt;
   &lt;li&gt;When you layout your project, decide if you are working on a library based or a service base layout.&lt;/li&gt;
   &lt;li&gt;For library based project, keep it flat and make it exportable.&lt;/li&gt;
-  &lt;li&gt;For Service based project, keep all packages internal, do not export any Go packages (keep the packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt;), and name any non Go packages appropriately (see the &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt; for &lt;strong&gt;inspiration only&lt;/strong&gt;).&lt;/li&gt;
+  &lt;li&gt;For Service based project, keep all packages internal, do not export any Go packages (keep the packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt;), and name any non Go packages appropriately (see the &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt; for &lt;strong&gt;inspiration&lt;/strong&gt;).&lt;/li&gt;
   &lt;li&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;godoc&lt;/code&gt; and markdowns to document things.&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -262,7 +252,7 @@ func SendGreetings(from Detail, to Detail, msg string) {
   &lt;li&gt;Despite the name Standard Go Project Layout, it is not an official standard created by the Go core language developement team. You should not assumed that the Go toolchain is going to enforce this layout. The template probably drew inspiration from the hexagon architecture pattern presented by &lt;a href=&quot;https://en.wikipedia.org/wiki/Alistair_Cockburn&quot;&gt;Alistair Cockburn&lt;/a&gt;.&lt;/li&gt;
 &lt;/ol&gt;
 </description>
-        <pubDate>Fri, 23 Dec 2022 22:08:00 +0800</pubDate>
+        <pubDate>Fri, 23 Dec 2022 14:08:00 +0000</pubDate>
         <link>https://paulwizviz.github.io/go/2022/12/23/go-proverb-architecture.html</link>
         <guid isPermaLink="true">https://paulwizviz.github.io/go/2022/12/23/go-proverb-architecture.html</guid>
         
@@ -470,9 +460,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;However, I think anyone new to generics will find it easy to use this feature. The Go tooling will guide you by flagging potential errors at compile time, thus minimising errors at runtime. The challenge, which is not specific to Go, is deciding when it is appropriate to use generics.&lt;/p&gt;
 </description>
-        <pubDate>Sat, 02 Apr 2022 02:32:00 +0800</pubDate>
-        <link>https://paulwizviz.github.io/go/2022/04/02/go-generics.html</link>
-        <guid isPermaLink="true">https://paulwizviz.github.io/go/2022/04/02/go-generics.html</guid>
+        <pubDate>Fri, 01 Apr 2022 19:32:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/2022/04/01/go-generics.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/2022/04/01/go-generics.html</guid>
         
         
         <category>go</category>
@@ -667,9 +657,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;From my perspective, I see great potential for Wasm as a basis for a Smart Contract for multiple blockchain protocol but it is a topic I hope to share in future posts after my experimentation.&lt;/p&gt;
 </description>
-        <pubDate>Wed, 25 Aug 2021 02:03:00 +0800</pubDate>
-        <link>https://paulwizviz.github.io/go/webassembly/2021/08/25/embedding-webassembly-in-go.html</link>
-        <guid isPermaLink="true">https://paulwizviz.github.io/go/webassembly/2021/08/25/embedding-webassembly-in-go.html</guid>
+        <pubDate>Tue, 24 Aug 2021 19:03:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html</guid>
         
         
         <category>go</category>
@@ -775,9 +765,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;There are more advance Docker container related operations but they generally follow the pattern described in this post. If you like to learn more, please refer to &lt;a href=&quot;https://pkg.go.dev/github.com/ph/moby/client&quot;&gt;https://pkg.go.dev/github.com/ph/moby/client&lt;/a&gt;.&lt;/p&gt;
 </description>
-        <pubDate>Sat, 21 Aug 2021 04:31:00 +0800</pubDate>
-        <link>https://paulwizviz.github.io/go/docker/2021/08/21/go-docker-container.html</link>
-        <guid isPermaLink="true">https://paulwizviz.github.io/go/docker/2021/08/21/go-docker-container.html</guid>
+        <pubDate>Fri, 20 Aug 2021 21:31:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html</guid>
         
         
         <category>go</category>
@@ -922,9 +912,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;The pros and cons of using Go to build an application to interact with your contract, is beyomd the scope of this post. I shall leave that to you to decide.&lt;/p&gt;
 </description>
-        <pubDate>Sun, 01 Aug 2021 04:31:00 +0800</pubDate>
-        <link>https://paulwizviz.github.io/go/solidity/2021/08/01/go-solidity-abigen.html</link>
-        <guid isPermaLink="true">https://paulwizviz.github.io/go/solidity/2021/08/01/go-solidity-abigen.html</guid>
+        <pubDate>Sat, 31 Jul 2021 21:31:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html</guid>
         
         
         <category>go</category>
@@ -1012,9 +1002,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;Rust slices support limited operations. There is no equivalent to Go’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;append&lt;/code&gt; operation to expand its underlying array or a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cap&lt;/code&gt; to determine the length of the underlying array. There indirect ways of getting the same effect as Go slice. There are, however, higher order data types like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;vector&lt;/code&gt; that you could use.&lt;/p&gt;
 </description>
-        <pubDate>Mon, 12 Jul 2021 03:31:00 +0800</pubDate>
-        <link>https://paulwizviz.github.io/go/rust/2021/07/12/go-rust-array-slice.html</link>
-        <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/07/12/go-rust-array-slice.html</guid>
+        <pubDate>Sun, 11 Jul 2021 20:31:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/07/11/go-rust-array-slice.html</guid>
         
         
         <category>go</category>
@@ -1082,9 +1072,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;The other difference is in the tools. Rust has a package management tool known as Cargo, to create the layout mentioned above and also co-ordinate dependencies between the modules during the build process. Go tools do not have feature to create “standard” layout like Cargo. Go tools (i.e. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go install&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;go mod&lt;/code&gt;) manages dependencies but it is done in conjunction with source code repositories hosting the Go codes. How well the flexibity afford by Go project layout and the fix layout afforded by Rust/Cargo in the context of refactoring, is a topic I will explore in future post.&lt;/p&gt;
 </description>
-        <pubDate>Thu, 01 Jul 2021 03:11:00 +0800</pubDate>
-        <link>https://paulwizviz.github.io/go/rust/2021/07/01/go-rust-projects-layout.html</link>
-        <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/07/01/go-rust-projects-layout.html</guid>
+        <pubDate>Wed, 30 Jun 2021 20:11:00 +0100</pubDate>
+        <link>https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html</link>
+        <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/06/30/go-rust-projects-layout.html</guid>
         
         
         <category>go</category>
@@ -1173,7 +1163,7 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;In this post I have covered one operation, which is to pull an image. The steps involved in manipulating other operations is broadly the same except for details such as SDK arguments or API parameters settings. I’ll cover those and other Docker components in future posts.&lt;/p&gt;
 </description>
-        <pubDate>Sat, 19 Jun 2021 20:00:00 +0800</pubDate>
+        <pubDate>Sat, 19 Jun 2021 13:00:00 +0100</pubDate>
         <link>https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html</link>
         <guid isPermaLink="true">https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html</guid>
         
@@ -1208,7 +1198,7 @@ func SendGreetings(from Detail, to Detail, msg string) {
 
 &lt;p&gt;As a newbie to Rust, all I would say about Rust/Cargo project layout seemed restrictive for me. But it maybe because I have not mastered the art of using Cargo fully, With the Go standard project layout, it allows me to organised my Go support code (some written in Go itself, Docker scripts, etc) cleanly and separate from the application code.&lt;/p&gt;
 </description>
-        <pubDate>Sat, 12 Jun 2021 20:52:00 +0800</pubDate>
+        <pubDate>Sat, 12 Jun 2021 13:52:00 +0100</pubDate>
         <link>https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html</link>
         <guid isPermaLink="true">https://paulwizviz.github.io/go/rust/2021/06/12/go-rust-projects.html</guid>
         

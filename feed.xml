@@ -5,8 +5,8 @@
     <description>A blog about my coding projects and how I solve coding challenges.</description>
     <link>https://paulwizviz.github.io/</link>
     <atom:link href="https://paulwizviz.github.io/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 22 Aug 2023 20:20:51 +0100</pubDate>
-    <lastBuildDate>Tue, 22 Aug 2023 20:20:51 +0100</lastBuildDate>
+    <pubDate>Fri, 29 Sep 2023 16:54:25 +0100</pubDate>
+    <lastBuildDate>Fri, 29 Sep 2023 16:54:25 +0100</lastBuildDate>
     <generator>Jekyll v3.9.2</generator>
     
       <item>
@@ -15,22 +15,28 @@
 
 &lt;p&gt;The Go programming language is easy to learn. Go has only about &lt;a href=&quot;https://go101.org/article/keywords-and-identifiers.html&quot;&gt;25 reserved words&lt;/a&gt; as compared to &lt;a href=&quot;https://en.wikipedia.org/wiki/List_of_Java_keywords&quot;&gt;Java 67 (not including frameworks)&lt;/a&gt; or &lt;a href=&quot;https://www.programiz.com/csharp-programming/keywords-identifiers&quot;&gt;C# 79&lt;/a&gt;. The Go toolchain to compile Go codes, manage dependencies, generate documentation and perform the analysis is also very easy to use.&lt;/p&gt;
 
-&lt;p&gt;I was introduce to Go after years of working initially with Java, QT/C++, Objective C then Swift, and I was told that Go was to be the working lanugage from then on as employer had adopted that. Despite having no prior experience using Go, I became very comfortable using the language. I felt ready to work on a production-grade project using Go.&lt;/p&gt;
+&lt;p&gt;I was introduced to Go after years of working initially with Java, QT/C++, Objective C then Swift, and my employer told that Go was to be the working lanugage. Despite having no prior experience using Go, I became very comfortable using the language very quickly. I felt ready to work on a production-grade project using Go.&lt;/p&gt;
 
-&lt;p&gt;However, I found architecting Go projects that promoted clean, clear, concise and maintainable code challenging. When I worked on my first project, there was little consensus on good architecture for Go projects. So I applied architectural paradigms that I had learnt from my previous working experience, which was a mix of object-oriented and, sort of, functional programming. I had assumed that “good” architectural paradium transcend all programming languages. However, I found, belatedly that I could not apply architectural paradigm intended, for example, Java to Go. When I applied the Java way of organising code I ended up with a structure that was too complex and hard to maintain – i.e. deeply nested layers of abstractions.&lt;/p&gt;
+&lt;p&gt;However, when I embarked on my first production grade project, I found architecting Go projects that had clean, clear, concise and maintainable layout challenging. I found little consensus on how to layout Go projects. So I applied architectural paradigms that I had learnt from my previous working experience, which was a mix of object-oriented and, sort of, functional programming. I had assumed that “good” architectural paradiums transcend all programming languages. However, I found, belatedly that I could not apply architectural paradigm intended, for example, Java to Go. When I applied the Java way of organising code I ended up with a structure that was too complex and hard to maintain – i.e. deeply nested layers of abstractions.&lt;/p&gt;
 
-&lt;p&gt;To avoid repeating the mistakes for future projects, I pivoted from what I knew about organising projects and delved into the philosophy behind the Go’s creation. So I turned to a presentation by Rob Pike, one of the creators of the language, where he presented the &lt;a href=&quot;https://go-proverbs.github.io/&quot;&gt;Go Proverbs&lt;/a&gt;. The proverb gave me the necessary philosophical foundation to break from my past and exploit the goodness of Go which I will share my thoughts in a series of blogs. In this post, I will address the aspect of the proverb titled &lt;a href=&quot;https://www.youtube.com/watch?v=PAAkCSZUG1c&amp;amp;t=1089s&quot;&gt;“design the architecture, name the components, document the details”&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To avoid repeating the mistakes for future projects, I pivoted from what I knew about organising projects and delved into the philosophy behind the Go’s creation. I turned to a presentation by Rob Pike, one of the creators of the language, where he presented the &lt;a href=&quot;https://go-proverbs.github.io/&quot;&gt;Go Proverbs&lt;/a&gt;. The proverb gave me the necessary philosophical foundation to break from my past and exploit the goodness of Go which I will share my thoughts in a series of blogs. In this post, I will address the aspect of the proverb titled &lt;a href=&quot;https://www.youtube.com/watch?v=PAAkCSZUG1c&amp;amp;t=1089s&quot;&gt;“design the architecture, name the components, document the details”&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;go-packages&quot;&gt;Go packages&lt;/h2&gt;
 
-&lt;p&gt;A Go package is the basic building block of a project. It is a folder containing one or more source files. A Go source file is one with the extension &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;*.go&lt;/code&gt;. The Go source files are organised as either part of a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; package or a named package.&lt;/p&gt;
+&lt;p&gt;A Go package is the basic unit of the language. It is a folder containing one or more source files. A Go source file is one with the extension &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;*.go&lt;/code&gt;. The Go source files are organised as either part of a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; package or a named package.&lt;/p&gt;
 
-&lt;p&gt;A &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; package contains a source file or files with the signature &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;package main&lt;/code&gt; and one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; function. The folder containing such files can have names different from its package signature. There is no requirement for these folders to be specifically named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt;.&lt;/p&gt;
-
-&lt;p&gt;A named package contains a source file or files with a signature that matches its containing folder. For example, source files with a signature &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;package something&lt;/code&gt; must be found under this folder named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;something&lt;/code&gt;, like so:&lt;/p&gt;
+&lt;p&gt;A &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; package contains a source file or files with the signature &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;package main&lt;/code&gt; and one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; function. The folder containing such files can have names different from its package signature. There is no requirement for these folders to be specifically named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; like so:&lt;/p&gt;
 
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  /something
-    source.go &amp;lt;-- contain &quot;package something&quot; at the top of the file
+    main.go &amp;lt;-- containts a statement &quot;package main&quot; at the top of the file
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;NOTE: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main.go&lt;/code&gt; is a convention but you can name the file anything.&lt;/p&gt;
+
+&lt;p&gt;A named package contains a source file or files with a signature that matches its containing folder. For example, source files with a signature in the file &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;package something&lt;/code&gt; must be found under this folder named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;something&lt;/code&gt;, like so:&lt;/p&gt;
+
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;  /something
+    source.go &amp;lt;-- contain a statement &quot;package something&quot; at the top of the file
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;With some exceptions that I will not discuss here, Go is not opinionated about naming packages or naming source files in each package, thus I found myself confronted with these questions:&lt;/p&gt;
@@ -45,12 +51,14 @@
 
 &lt;h2 id=&quot;deciding-what-to-include-in-and-naming-a-go-package&quot;&gt;Deciding what to include in and naming a Go package&lt;/h2&gt;
 
-&lt;p&gt;If you applied an object-oriented programming mindset, your instinct is organise your code around “classes”, a language construct you find in object-oriented languages such as Java or C#. The basic element of a class is a data structure and member methods. There are other more complex construct associated with classes in object-oriented langagues such as class (or static) methods, access protections (e.g. public, protected and private), and inheritence or polymorphism. I’ll discuss how these mechanisms impact architectural decisions in future blogs.&lt;/p&gt;
+&lt;p&gt;If you applied an object-oriented programming mindset, your instinct is organise your code around “classes”. A class is construct you typically find in object-oriented languages such as Java or C#.&lt;/p&gt;
+
+&lt;p&gt;The basic element of a class is a data structure with member methods. There are other more complex construct associated with classes in object-oriented langagues such as class (or static) methods, access protections (e.g. public, protected and private), and inheritence or polymorphism. I’ll discuss how these mechanisms impact architectural decisions in future blogs.&lt;/p&gt;
 
 &lt;p&gt;In the case of Go, the equivalent, very loosely, of a class is a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;struct&lt;/code&gt; representing the structure of a piece of data with a “member” function declared like this:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code class=&quot;language-Go&quot;&gt;type Person struct{
-  Name 
+  Name string
 }
 
 func (p Person) GreetsWith(message string){
@@ -60,7 +68,9 @@ func (p Person) GreetsWith(message string){
 
 &lt;p&gt;However, it is worth noting that declaring a Go “class” as illustrated above is simply a syntatic sugar for this:&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-Go&quot;&gt;type Person struct{}
+&lt;pre&gt;&lt;code class=&quot;language-Go&quot;&gt;type Person struct{
+  Name string
+}
 
 func SendGreetings(p Person, message string){
   fmt.Printf(&quot;%s greets with message: %s&quot;, p.Name, message)
@@ -69,7 +79,7 @@ func SendGreetings(p Person, message string){
 
 &lt;p&gt;This second approach is a more functional approach where the variable &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;p&lt;/code&gt; represents a receiver type.&lt;/p&gt;
 
-&lt;p&gt;Working on my first Go project, I started organising my code around object oriented style classes. I would then group these classes into Go packages, treating the packages as “namespaces” commonly found in object-oriented languages or, in some cases, a kind of miscellaneous folder for all kind of classes that did not fit into any grouping. However, as intended in the design of Go, a package name and its content have a coupled relationship. This means whenever you call a stucts or function you have to prefix it with a package name. Without much thought I found myself creating packages that were too nested and difficult to maintain or extend or exported for third parties use.&lt;/p&gt;
+&lt;p&gt;Working on my first Go project, I started organising my code around object oriented style classes. I would then group these classes into Go packages, treating the packages as “namespaces” commonly found in object-oriented languages. There were times where I packaged all kind of classes that did not fit into any grouping – i.e. lacking internal cohension. I also realise that with the intended in the design of Go, a package name and its content have a coupled relationship. This means whenever you consumed a stucts or function you have to prefix it with a package name. Without much thought I found myself creating packages that were too nested and difficult to maintain or extend or exported for third parties use.&lt;/p&gt;
 
 &lt;p&gt;In order to find source of good practices, I examined Go’s standard library package &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;time&lt;/code&gt;. In that package there is a function call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Now()&lt;/code&gt; which coupled with the package &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;time.Now()&lt;/code&gt;. If you follow the official Go package naming convention described in the &lt;a href=&quot;https://go.dev/blog/package-names&quot;&gt;Go blog&lt;/a&gt;, it recommends:&lt;/p&gt;
 
@@ -90,25 +100,29 @@ type Detail struct{
 }
 
 func SendGreetings(from Detail, to Detail, msg string) {
-  fmt.Printf(&quot;%s greets %s with message: %s&quot;, from.Name, to.Name, msg)
+  fmt.Printf(&quot;%s greets %s with message: %s&quot;, from.Firstname, to.Firstmame, msg)
 }
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;I could easily consume the package this way &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.Detail{}&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.SendGreetings(from, to, message)&lt;/code&gt;. By treating packages in lieu of classes, treating functions in packages as forms of member methods, I found it easier to organise packages in a coherent fashion. What about the goodness of object-oriented programming? Inheritence and polymorphism?&lt;/p&gt;
+&lt;p&gt;I could easily consume the package this way &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.Detail{}&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;person.SendGreetings(from, to, message)&lt;/code&gt;. By treating packages in lieu of classes, treating functions in packages as forms of member methods, I found it easier to organise packages in a coherent fashion.&lt;/p&gt;
 
-&lt;p&gt;My view is the loss of object-orientation is more than compensated by Go features that the designer of the language intended it to be. Namely to keep things small and appropriate for concurrency.&lt;/p&gt;
+&lt;p&gt;What about the goodness of object-oriented programming? Inheritence and polymorphism?&lt;/p&gt;
+
+&lt;p&gt;My view is the loss of object-orientation is more than compensated by Go features that the designer of the language intended it to be. Namely to keep things small and most importantly compatible to Go concurrency paradigm by being more functional.&lt;/p&gt;
 
 &lt;h2 id=&quot;organising-your-project-structure&quot;&gt;Organising your project structure&lt;/h2&gt;
 
 &lt;p&gt;Having decided how I would create Go packages, the next challenge I found was how best to organise them in a project structure.&lt;/p&gt;
 
-&lt;p&gt;When working on a project with some degree of complexity, I often found that I need to organise my Go packages to exist alongside non-Go-related artefacts, such as deployment scripts, build scripts, etc. I also find it necessary to decide whether to export my Go packages for consumption by other projects or not export my Go packages. In other words, these are decisions related to project layout. Based on the projects I have worked on, I found that there are basically two types of projects; a library-oriented project or a service-oriented project.&lt;/p&gt;
+&lt;p&gt;When working on a project with some degree of complexity, I often found that I need to layout my Go packages to exist alongside non-Go-related artefacts in a way that was coherent not only to myself but my collaborators. Examples of non-Go artefacts are deployment scripts, build scripts, etc that support the creation of Go binaries. The other descisions I also had to make was whether to export my Go packages for consumption by other projects or not export my Go packages.&lt;/p&gt;
 
-&lt;p&gt;A library-oriented project is intended purely for sharing Go artefacts with other projects. A Service-oriented project is intended to build one or more executable binaries. There is no standard way of laying out a service-oriented or library project. However, I found a template some describe as controversially or clumsily named &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt;&lt;sup&gt;1&lt;/sup&gt;. The template offers clues to a proper way of structuring a Go project.&lt;/p&gt;
+&lt;p&gt;Having then worked on several Go projects, I learned that there are basically two types of projects; a library-oriented project or a service-oriented project. A library-oriented project is intended purely for sharing Go artefacts with other projects. A Service-oriented project is intended to build one or more executable binaries. I also learned that there is no standard way of laying out a service-oriented or library project. After much experimentation I found the following layouts that enable me to maintain a clean and extensible architecture.&lt;/p&gt;
 
 &lt;p&gt;&lt;u&gt;Library-oriented&lt;/u&gt;&lt;/p&gt;
 
-&lt;p&gt;A Go library (also known as a Go module) is a collection of Go source codes or Go packages I use to share with other projects. There are three main types:&lt;/p&gt;
+&lt;p&gt;A Go library, also known as a Go module, is a collection of Go source codes or Go packages intended for consumption by other projects. There is no need to precompile in order to share packaged. Consuming projects simply import library from source.&lt;/p&gt;
+
+&lt;p&gt;There are three main types:&lt;/p&gt;
 
 &lt;ul&gt;
   &lt;li&gt;a single package library;&lt;/li&gt;
@@ -116,9 +130,9 @@ func SendGreetings(from Detail, to Detail, msg string) {
   &lt;li&gt;a generated library.&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;In the case of a single package library, I treat my Go package as the equivalent of the root of a source code repository. The source files are laid out flat in the code repository with its name for the Go package name. You can see an example in &lt;a href=&quot;https://github.com/spf13/cobra&quot;&gt;Corbra library&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;In the case of a single package library, the root of a source code repository and its name is the equivalent of a Go package. All I needed to do was to maintain the source files in a flat structure. You can see an example in &lt;a href=&quot;https://github.com/spf13/cobra&quot;&gt;Corbra library&lt;/a&gt;.&lt;/p&gt;
 
-&lt;p&gt;A multi-package library is a collection of Go packages. I could lay out the Go packages like this:&lt;/p&gt;
+&lt;p&gt;A multi-package library has a collection of Go packages. It could lay out the Go packages like this:&lt;/p&gt;
 
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
   fibgen/  &amp;lt;-- Go package containing functions to generate fibonacci sequence
@@ -127,11 +141,11 @@ func SendGreetings(from Detail, to Detail, msg string) {
   go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;However, I prefer a layout using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; arrangement. So I would lay out my Go packages that look like this:&lt;/p&gt;
+&lt;p&gt;However, there is also the option of a layout around the folder &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; and it would look like this:&lt;/p&gt;
 
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository name&amp;gt;/
-  docs/
-  examples/
+  docs/ &amp;lt;-- companion folders
+  examples/ &amp;lt;-- companion folders
   pkg/
     fibgen/
     cryptoutil/
@@ -139,7 +153,7 @@ func SendGreetings(from Detail, to Detail, msg string) {
   go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;My preferred layout has the advantage of differentiating Go packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; folder from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docs&lt;/code&gt; containing markdowns or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;examples&lt;/code&gt; containing runnable examples. I also tend to use this layout where I would generate the library codes from a third-party specification such as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;protobuf&lt;/code&gt;. My project layout would look like this:&lt;/p&gt;
+&lt;p&gt;Using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; folder helps distinguish exportable Go codes from non-Go artefacts like &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;docs&lt;/code&gt; containing markdowns or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;examples&lt;/code&gt; containing runnable Go examples or illustrations of how to consume &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt;. This layout could also be extended where the Go packages are generated from a third-party specification such as &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;protobuf&lt;/code&gt; as shown below:&lt;/p&gt;
 
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
   build/ &amp;lt;-- contain generator scripts
@@ -153,17 +167,42 @@ func SendGreetings(from Detail, to Detail, msg string) {
   go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
+&lt;p&gt;Notes:&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;In a multipackage library, Ensure that all packages are independent of each other. &lt;strong&gt;Do not&lt;/strong&gt; have packages dependent on each other in this layout. Whilst the Go tooling does not forbade dependencies, it can cause problems with it comes to versioning.&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;the use of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; is a hotly debated topic in the Go community. Some feel that it is unnecessay as the folder has no significance from a Go tooling perspective. Others feel that it is a useful organisational signalling device. It helps people maintaining the code disambiguate from other aspects of the projects. I am in favour of using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; and recommends it as an organisational device but it is a personal choice.&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
 &lt;p&gt;&lt;u&gt;Service-oriented&lt;/u&gt;&lt;/p&gt;
 
-&lt;p&gt;In the case of service-oriented layout for projects building one or more executable binaries, one approach to laying out a project like is:&lt;/p&gt;
+&lt;p&gt;A service oriented project primary focus is building one or more executable. Whilst you can elect to export Go artefacts, my recommendation is not to export &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Go&lt;/code&gt; packages for consumption by other projects. I feel you should think of such layout as the basis of a monorepo for creating multiple services.&lt;/p&gt;
+
+&lt;p&gt;A basic service oriented project with one main package could easily be organised this way.&lt;/p&gt;
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
    utility.go
    main.go &amp;lt;-- contain only main function
    go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;However, this is only for small projects involving only one &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; package.&lt;/p&gt;
 
-&lt;p&gt;A more realistic project will involve not just Go codes but also non-Go artefacts like build or deployment scripts. Some projects may also involve building multiple executables. For this type of project, I would layout the project like this:&lt;/p&gt;
+&lt;p&gt;At the next level are projects involving multiple main packages, in particular, to build microservices organised around a monorepo. For this type project, a layout like this would be most appropriate:&lt;/p&gt;
+&lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
+  cmd/
+    service_a/
+      main.go
+    service_b/
+      main.go
+  internal/ &amp;lt;-- shared internal library codes for service_a and service_b
+    config/
+      config.go
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;The folders &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmd&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; are the two organising folders for your codes to build executables (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;service_a&lt;/code&gt; and &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;service_b&lt;/code&gt;). Note: The folder &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; has a special meaning in Go. Packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; cannot be exported to other Go packages beyond adjacent folders.&lt;/p&gt;
+
+&lt;p&gt;A more realistic project will involve not just Go codes but also non-Go artefacts like build or deployment scripts. For this type of project, a better layout is this:&lt;/p&gt;
 
 &lt;div class=&quot;language-plaintext highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;repository&amp;gt;/
   build/ &amp;lt;-- build scripts
@@ -177,17 +216,23 @@ func SendGreetings(from Detail, to Detail, msg string) {
         internal/
           restapi/
       main.go
-  docs/
-  internal/ &amp;lt;-- shared internal library codes for service_a and service_b
+  docs/ &amp;lt;-- folder for markdown documents
+  internal/ &amp;lt;-- folder for packages shared with main packages under cmd
     fibgen/
     cryptoutil/
   scripts/ &amp;lt;-- script as hooks for users or CI/CD to kick off build process
   README.md
   go.mod
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;Note: The folder &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; has a special meaning in the case of Go. Packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; that may not be exported beyond adjacent folders.&lt;/p&gt;
 
-&lt;p&gt;The structure also enable me to combine Go with other languages in a coherent manner. Please check out my example &lt;a href=&quot;https://github.com/paulwizviz/go-web&quot;&gt;here&lt;/a&gt;. It demonstrates a service-oriented project that combines Go with ReactJS source codes clearly demarcated.&lt;/p&gt;
+&lt;p&gt;This rationale behind the layout is based on the hexagon architecture as shown in Figure 1. In this case, packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmd&lt;/code&gt; is dependent on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; packages specific to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; or dependent on top level &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt;.  Within &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; packages should ideally not be dependent on each other to avoid circular dependencies but if you have to do so, dependencies should be one way only.&lt;/p&gt;
+
+&lt;figure style=&quot;padding-top:20px; padding-bottom:20px&quot;&gt;
+  &lt;img src=&quot;https://paulwizviz.github.io/static/img/posts/hexagonal-arch.png&quot; /&gt;
+  &lt;figcaption&gt;Figure 1: The hexagon architecture&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;p&gt;I also found that the layout also allow me to combine Go with other languages in a coherent manner, separating cleanly between Go and other languages, such as Javascript. Please check out my example &lt;a href=&quot;https://github.com/paulwizviz/go-web&quot;&gt;here&lt;/a&gt;. It demonstrates a service-oriented project that combines Go with ReactJS source codes clearly demarcated.&lt;/p&gt;
 
 &lt;h2 id=&quot;document-the-details&quot;&gt;Document the details&lt;/h2&gt;
 
@@ -238,19 +283,16 @@ func SendGreetings(from Detail, to Detail, msg string) {
 &lt;p&gt;To summarise, for any Go projects and putting Rob Pike’s proverb on architecture, naming things and documentation into action, I recommend these principles when you work with Go:&lt;/p&gt;
 
 &lt;ul&gt;
-  &lt;li&gt;Use short, clear, and concise names for your Go packages and their content.&lt;/li&gt;
   &lt;li&gt;Do not replicate paradigms from other languages blindly.&lt;/li&gt;
-  &lt;li&gt;When you layout your project, decide if you are working on a library based or a service base layout.&lt;/li&gt;
-  &lt;li&gt;For library based project, keep it flat and make it exportable.&lt;/li&gt;
-  &lt;li&gt;For Service based project, keep all packages internal, do not export any Go packages (keep the packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;main&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt;), and name any non Go packages appropriately (see the &lt;a href=&quot;https://github.com/golang-standards/project-layout&quot;&gt;Standard Go Project Layout&lt;/a&gt; for &lt;strong&gt;inspiration&lt;/strong&gt;).&lt;/li&gt;
+  &lt;li&gt;Use short, clear, and concise names for your Go packages and their content.&lt;/li&gt;
+  &lt;li&gt;When you layout your project, decide if you are working on a library or a service oriented project.&lt;/li&gt;
+  &lt;li&gt;For library based project, keep it as flat (ideally a collection of Go files only and treat the repository as a single package) as possible.&lt;/li&gt;
+  &lt;li&gt;For library based project, organise it around &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pkg&lt;/code&gt; folder to diambiguate it from other non-go artefacts.&lt;/li&gt;
+  &lt;li&gt;For library based project with multiple Go packages, ensure that each package is independent of others (i.e. no dependencies between packages).&lt;/li&gt;
+  &lt;li&gt;For Service based project, keep all packages internal, do not export any Go packages (keep the packages under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmd&lt;/code&gt; or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; folder).&lt;/li&gt;
+  &lt;li&gt;For Service based project, follow the hexagonal architecture pattern ensuring that dependencies flows from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cmd&lt;/code&gt; to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;internal&lt;/code&gt; packages and avoid circular dependencies.&lt;/li&gt;
   &lt;li&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;godoc&lt;/code&gt; and markdowns to document things.&lt;/li&gt;
 &lt;/ul&gt;
-
-&lt;h2 id=&quot;notes&quot;&gt;Notes&lt;/h2&gt;
-
-&lt;ol&gt;
-  &lt;li&gt;Despite the name Standard Go Project Layout, it is not an official standard created by the Go core language developement team. You should not assumed that the Go toolchain is going to enforce this layout. The template probably drew inspiration from the hexagon architecture pattern presented by &lt;a href=&quot;https://en.wikipedia.org/wiki/Alistair_Cockburn&quot;&gt;Alistair Cockburn&lt;/a&gt;.&lt;/li&gt;
-&lt;/ol&gt;
 </description>
         <pubDate>Fri, 23 Dec 2022 14:08:00 +0000</pubDate>
         <link>https://paulwizviz.github.io/go/2022/12/23/go-proverb-architecture.html</link>

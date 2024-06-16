@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="/static/img/favicon.ico" />
+    <title>Go channels: Don't communicate by sharing memory, share memory by communicating - My coding projects and solutions</title>
+    <meta name="author" content="Paul Sitoh" />
+    <meta name="description" content="Go channels: Don't communicate by sharing memory, share memory by communicating" />
+    <meta name="keywords" content="Go channels: Don't communicate by sharing memory, share memory by communicating, My coding projects and solutions, go" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/feed.xml">
+    <meta content="" property="fb:app_id">
+    <meta content="My coding projects and solutions" property="og:site_name">
+
+    
+
+    
+      <meta content="Go channels: Don't communicate by sharing memory, share memory by communicating" property="og:title">
+      <meta content="article" property="og:type">
+    
+
+    
+      <meta content="A blog about my coding projects and how I solve coding challenges." property="og:description">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/go/2024/06/15/go-channel.html" property="og:url">
+    
+
+    
+      <meta content="2024-06-15T15:08:00+01:00" property="article:published_time">
+      <meta content="https://paulwizviz.github.io/about/" property="article:author">
+    
+
+    
+      <meta content="https://paulwizviz.github.io/static/img/posts/gopher.png" property="og:image">
+    
+
+    
+      
+        <meta content="go" property="article:section">
+      
+    
+
+    
+      
+    
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@#">
+    <meta name="twitter:creator" content="@#">
+
+    
+      <meta name="twitter:title" content="Go channels: Don't communicate by sharing memory, share memory by communicating">
+    
+
+    
+      <meta name="twitter:url" content="https://paulwizviz.github.io/go/2024/06/15/go-channel.html">
+    
+
+    
+      <meta name="twitter:description" content="A blog about my coding projects and how I solve coding challenges.">
+    
+
+    
+
+    <!-- Font awesome icons -->
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+    <!-- syntax highlighting CSS -->
+    <link rel="stylesheet" href="/static/css/syntax.css">
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,300italic,300,400italic,700&amp;subset=latin,latin-ext" rel="stylesheet" type="text/css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/super-search.css">
+    <link rel="stylesheet" href="/static/css/thickbox.css">
+    <link rel="stylesheet" href="/static/css/projects.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+
+    
+  </head>
+  <body>
+    <div class="share-page">
+      <img src="https://paulwizviz.github.io/static/img/cover.jpg" height= 50% width=100%/>
+    </div>
+    <div class="container">
+      <div class="col-sm-3">
+        <div class="fixed-condition">
+          <h1 class="author-name"><a href="/">Paul Sitoh</a></h1>
+          
+            <div class="profile-about">
+              I'm a software engineer who enjoys coding principally in Go and where necessary other languages.
+            </div>
+          
+          <div class="social">
+            <ul>
+              
+                <li><a href="https://twitter.com/paulwizviz" target="_blank"><i class="fa fa-twitter"></i></a></li>
+              
+                <li><a href="https://www.linkedin.com/in/paul-s-7088b223/" target="_blank"><i class="fa fa-linkedin"></i></a></li>
+              
+                <li><a href="https://github.com/paulwizviz" target="_blank"><i class="fa fa-github"></i></a></li>
+              
+            </ul>
+          </div>
+          <div class="search" id="js-search">
+            <input type="text" placeholder="(sitemap)~$ type to search" class="search__input form-control" id="js-search__input">
+            <ul class="search__results" id="js-search__results"></ul>
+          </div>
+          <hr />
+          <ul class="sidebar-nav">
+            <strong>Navigation</strong>
+            <li><a href="/">Home</a></li>
+            
+              <li><a class="about" href="/about/">About Me</a></li>
+            
+              <li><a class="about" href="/projects/">My Projects</a></li>
+            
+          </ul>
+        </div>
+        <!-- end /.fixed-condition -->
+      </div>
+      <div class="col-sm-8 col-offset-1 main-layout">
+        <header class="post-header">
+  <h1 class="post-title">Go channels: Don't communicate by sharing memory, share memory by communicating</h1>
+</header>
+
+<span class="time">15 Jun 2024</span>
+
+  <span class="categories">
+    &raquo; <a href="/category/go">go</a>
+  </span>
+
+
+<div class="content">
+  
+  <div class="share-page">
+    <img src="https://paulwizviz.github.io/static/img/posts/gopher.png"/>
+  </div>
+  
+  <div class="post"><h2 id="about-this-post">About this post</h2>
+
+<p>Go provides a mechanism known as channels to facilitate data transfer between functions, typically concurrent ones. In this post, we’ll examine the features of Go channels, focusing on the differences between buffered and unbuffered channels, and the potential pitfalls when using them.</p>
+
+<h2 id="what-is-a-go-channel">What is a Go Channel?</h2>
+
+<p>One approach for two or more concurrent operations to communicate is to access shared memory. To avoid race conditions in this communication model, mechanisms like mutex locks are required. When a process accesses the memory, a lock is placed on the shared memory to prevent other processes from accessing it. Once the lock is removed, access to the shared memory by all processes is permitted. This ensures that the processes do not override each other’s actions out of sequence.</p>
+
+<p>Go channels offer an alternative way of enabling concurrent processes to synchronize communications. In this model, a process sends data via a channel to other processes that receive it. Synchronization is achieved by ensuring that there are both senders and receivers to send and receive messages, respectively. Additionally, senders and receivers must not send or consume more messages than are available.</p>
+
+<p>There are two types of channels: unbuffered and buffered. Before we examine these two types in detail, consider Example 1, which uses an unbuffered channel, and Example 2, which uses a buffered channel. Questions:</p>
+
+<ul>
+  <li>Why does Example 1 result in a synchronization error?</li>
+  <li>Why does Example 2 generate no error?</li>
+</ul>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+
+	<span class="c">// Create an unbuffered channel</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
+
+	<span class="c">// Send message to channel before receiver is available</span>
+	<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello World"</span> <span class="c">// Causing Go routine dead lock.</span>
+	<span class="o">&lt;-</span><span class="n">c</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 1 - Unbuffered Channel</strong></p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="s">"fmt"</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+
+	<span class="c">// Create a buffered channel with a capacity of one</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+
+	<span class="c">// Push a message to a buffered channel</span>
+	<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
+
+  <span class="c">// Consume data</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 2 - Buffered channel</strong></p>
+
+<h2 id="unbuffered-channel">Unbuffered Channel</h2>
+
+<p>Let’s revisit Example 1. As mentioned earlier, a Go channel must have both a sender and a receiver. For an unbuffered channel, the sender must not send any message without a receiver being ready. In the case of Example 1, a message is sent to the channel before a receiver (i.e., &lt;-c) is available, causing a deadlock error. Note that in this example, messages are sent to channels within the same main routine, leaving no time for the receiving channel to activate.</p>
+
+<p>We can fix this problem by having the sender run in a separate goroutine, as shown in Example 3.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"fmt"</span>
+	<span class="s">"time"</span>
+<span class="p">)</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+
+  <span class="c">// Create an unbufferred channel</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
+
+  <span class="c">// Initiate a Go routine and goes to sleep</span>
+  <span class="c">// It hands off to the main routine.</span>
+	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">c</span> <span class="k">chan</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+		<span class="k">for</span> <span class="p">{</span>
+			<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">10</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
+      <span class="c">// Hello is send to channel after 10 second.</span>
+			<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
+			<span class="k">break</span>
+		<span class="p">}</span>
+	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+
+  <span class="c">// The main routine is blocked until the channel receives a message</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span> 
+<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 3: Running sender in a Go routine.</strong></p>
+
+<p>In practice, we often find ourselves in situations where the receiver is unaware of the number of messages sent by the sender, as illustrated in Example 4. This example uses the <code class="language-plaintext highlighter-rouge">close</code> operation to signal that the channel cannot receive any more messages.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="c">// Create an unbuffered channel</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
+
+	<span class="c">// Goroutine execute and handover to main routine</span>
+	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+		<span class="c">// Send message to channel</span>
+		<span class="k">for</span> <span class="k">range</span> <span class="m">2</span> <span class="p">{</span>
+			<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello World"</span>
+		<span class="p">}</span>
+		<span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="c">// Channel is closed no more message allowed and signal to receiver that no more is coming.</span>
+	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+
+	<span class="c">// The sender runs in an endless loop but no idea of the number of messages sent</span>
+	<span class="c">// or when the channel is closed.</span>
+	<span class="k">for</span> <span class="p">{</span>
+		<span class="c">// Receive message</span>
+		<span class="n">v</span><span class="p">,</span> <span class="n">ok</span> <span class="o">:=</span> <span class="o">&lt;-</span><span class="n">c</span>
+		<span class="c">// If channel is closed, ok is false otherwise channel is opened and expect more messages</span>
+		<span class="k">if</span> <span class="o">!</span><span class="n">ok</span> <span class="p">{</span>
+			<span class="n">log</span><span class="o">.</span><span class="n">Fatal</span><span class="p">(</span><span class="s">"Channel closed"</span><span class="p">)</span>
+		<span class="p">}</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 4: Check for closed channel.</strong></p>
+
+<p>You can also use the range operator to detect closed channels, as shown in Example 5.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
+	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="m">3</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+			<span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
+		<span class="p">}</span>
+	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">v</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">c</span> <span class="p">{</span> <span class="c">// This ensure the receving channel range until all messages from sender are drained</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+	<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 5: Range for message until the channel is closed.</strong></p>
+
+<p>We should not close a channel before sending a message to it, as demonstrated in Example 6. Doing so will cause a deadlock in the system.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">(){</span>
+  <span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">1</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
+		<span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
+	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+	<span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> 
+<span class="p">}</span>  
+</code></pre></div></div>
+<p><strong>Example 6: Closing a channel prematurely.</strong></p>
+
+<p>A useful use case for an unbuffered channel is to enable synchronized operations across goroutines, as shown in Example 7. The channel is used to signal two goroutines to end their loops.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">q</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{})</span>
+	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span><span class="p">{</span>
+      <span class="c">// Do something until stop</span>
+    <span class="p">}</span>
+		<span class="c">// We send an arbitrary signal</span>
+		<span class="n">q</span> <span class="o">&lt;-</span> <span class="k">struct</span><span class="p">{}{}</span>
+	<span class="p">}(</span><span class="n">q</span><span class="p">)</span>
+<span class="n">loop</span><span class="o">:</span>
+  <span class="k">for</span> <span class="p">{</span>
+		<span class="c">// </span>
+		<span class="k">select</span> <span class="p">{</span>
+		<span class="k">case</span> <span class="o">&lt;-</span><span class="n">q</span><span class="o">:</span>
+			<span class="k">break</span> <span class="n">loop</span>
+		<span class="p">}</span>
+	<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 7: Using unbuffered channel to synchronised Go routines.</strong></p>
+
+<h2 id="buffered-channel">Buffered Channel</h2>
+
+<p>Let’s revisit Example 2. The reason this does not result in an error is because the buffered channel can hold one message. When the channel has reached its capacity, the routine is blocked until a receiver is available.</p>
+
+<p>One issue with a buffered channel occurs when you attempt to send a message to a channel that is already full, which causes an error. Example 8 illustrates this problem.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span> <span class="c">// Create a channel with two slices of strings</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Channel capacity: %v Length: %v</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="nb">cap</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+
+	<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Channel capacity: %v Length: %v</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="nb">cap</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+
+	<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"World"</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Channel capacity: %v Length: %v</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="nb">cap</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+
+	<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hola"</span> <span class="c">// Send a message to channel when its buffer is full this will cause a deadlock as there is no receiving channel to drain the buffer.</span>
+	<span class="c">// fatal error: all goroutines are asleep - deadlock!</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Channel capacity: %v Length: %v</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="nb">cap</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 8: Panic when you try to a full buffered channel.</strong></p>
+
+<p>An approach to prevent pushing to a full buffered channel is to use the select statement, as demonstrated in Example 9.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c">// Create a buffered channel with a capacity of 2</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span>
+	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="m">10</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
+			<span class="k">select</span> <span class="p">{</span>
+			<span class="k">case</span> <span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">i</span><span class="o">:</span> <span class="c">// Push when channel is not full</span>
+				<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Pushing %v to channel</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+			<span class="k">default</span><span class="o">:</span>
+				<span class="c">// This is called when the channel buffer is full.</span>
+				<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Don't push %v to channel</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+			<span class="p">}</span>
+		<span class="p">}</span>
+	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+</code></pre></div></div>
+<p><strong>Example 9: Using select to safeguard against pushing to a full channel.</strong></p>
+
+<p>Buffered channels are used to decouple operations between Goroutines.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Let’s conclude with this quote from the <a href="https://go-proverbs.github.io/">Go proverb</a>:</p>
+
+<blockquote>
+  <p>Don’t communicate by sharing memory, share memory by communicating.</p>
+</blockquote>
+
+<p>In other words, use Go channels for synchronization.</p>
+
+<p>Finally, be aware of the differences between unbuffered and buffered channels. These are as follows:</p>
+
+<ul>
+  <li>Unbuffered channels:
+    <ul>
+      <li>The channel has no capacity to store data.</li>
+      <li>When you send a message to the channel, there must be a corresponding receiver ready to receive it.</li>
+      <li>The sender goroutine will block until a receiver is available to receive the message.</li>
+      <li>Typical use cases include facilitating synchronizations between goroutines.</li>
+    </ul>
+  </li>
+  <li>Buffered channels:
+    <ul>
+      <li>It has a specified capacity to store data, determined during the make operation.</li>
+      <li>The receiver will block when the buffer is empty.</li>
+      <li>Attempting to send data to a full buffer will cause the channel to panic.</li>
+      <li>Typical use cases include decoupling operations when sending messages.</li>
+    </ul>
+  </li>
+</ul>
+
+</div>
+  <div class="share-page">
+  <span style="float: left;">Share this on &rarr;&nbsp;&nbsp;</span>
+
+  <!-- Twitter -->
+  <a href="https://twitter.com/share" class="twitter-share-button" data-via="#">Tweet</a>
+  <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+  <!-- Facebook -->
+  <!-- <div class="fb-share-button" data-href="https://paulwizviz.github.io/go/2024/06/15/go-channel.html" data-layout="button_count" style="position: relative; top: -8px; left: 3px;"></div> -->
+</div>
+
+<!-- <div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.6&appId=";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script> -->
+
+</div>
+
+
+  
+    
+      
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+            <div class="panel-body">
+              <h4>Related Posts</h4>
+              <ul>
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/2022/12/23/go-proverb-architecture.html">Design the architecture, name the components, document the details</a>
+                  
+                    (Categories: <a href="/category/go">go</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/2022/04/01/go-generics.html">Using Go generics</a>
+                  
+                    (Categories: <a href="/category/go">go</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/webassembly/2021/08/24/embedding-webassembly-in-go.html">Embedding WebAssembly in Go app</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/webassembly">webassembly</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/08/20/go-docker-container.html">Creating and running docker container via Go SDK</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/solidity/2021/07/31/go-solidity-abigen.html">Ethereum Application Binary Interface (ABI) in Go</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/solidity">solidity</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+    
+      
+        
+          
+            
+                <li class="relatedPost">
+                  <a href="https://paulwizviz.github.io/go/docker/2021/06/19/manipulating-docker-from-go.html">Manipulating Docker containers via Go -- working with images</a>
+                  
+                    (Categories: <a href="/category/go">go</a>, <a href="/category/docker">docker</a>)
+                  
+                </li>
+          
+          
+        
+      
+    
+        
+          
+      
+    
+  
+  
+  </ul>
+</div>
+
+
+<div class="PageNavigation">
+  
+    <a class="prev" href="/go/2022/12/23/go-proverb-architecture.html">&laquo; Design the architecture, name the components, document the details</a>
+  
+  
+</div>
+
+<!-- <div class="disqus-comments">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+    /* <![CDATA[ */
+    var disqus_shortname = "";
+    var disqus_identifier = "https://paulwizviz.github.io_Go channels: Don't communicate by sharing memory, share memory by communicating";
+    var disqus_title = "Go channels: Don't communicate by sharing memory, share memory by communicating";
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+    /* ]]> */
+  </script> -->
+</div>
+
+        <footer>
+          &copy; Paul Sitoh
+          
+            - <a href="https://github.com/paulwizviz">https://github.com/paulwizviz</a> - Powered by Jekyll.
+          
+          <!-- <div class="btn-github" style="float:right;">
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=star&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+            <iframe src="https://ghbtns.com/github-btn.html?user=agusmakmun&repo=agusmakmun.github.io&type=fork&count=true" frameborder="0" scrolling="0" width="100" height="20px"></iframe>
+          </div> -->
+        </footer>
+      </div>
+      <!-- end /.col-sm-8 -->
+    </div>
+    <!-- end /.container -->
+
+    <!-- Bootstrap core JavaScript -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/super-search.js"></script>
+    <script src="/static/js/thickbox-compressed.js"></script>
+    <script src="/static/js/projects.js"></script>
+  </body>
+</html>
+

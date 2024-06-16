@@ -195,6 +195,14 @@
 
 <p>We can fix this problem by having the sender run in a separate goroutine, as shown in Example 3.</p>
 
+<p>In practice, we often find ourselves in situations where the receiver is unaware of the number of messages sent by the sender, as illustrated in Example 4. This example uses the <code class="language-plaintext highlighter-rouge">close</code> operation to signal that the channel cannot receive any more messages.</p>
+
+<p>You can also use the range operator to detect closed channels, as shown in Example 5.</p>
+
+<p>We should not close a channel before sending a message to it, as demonstrated in Example 6. Doing so will cause a deadlock in the system.</p>
+
+<p>A useful use case for an unbuffered channel is to enable synchronized operations across goroutines, as shown in Example 7. The channel is used to signal two goroutines to end their loops.</p>
+
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
 
 <span class="k">import</span> <span class="p">(</span>
@@ -225,8 +233,6 @@
 </code></pre></div></div>
 <p><strong>Example 3: Running sender in a Go routine.</strong></p>
 
-<p>In practice, we often find ourselves in situations where the receiver is unaware of the number of messages sent by the sender, as illustrated in Example 4. This example uses the <code class="language-plaintext highlighter-rouge">close</code> operation to signal that the channel cannot receive any more messages.</p>
-
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
   <span class="c">// Create an unbuffered channel</span>
 	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
@@ -255,8 +261,6 @@
 </code></pre></div></div>
 <p><strong>Example 4: Check for closed channel.</strong></p>
 
-<p>You can also use the range operator to detect closed channels, as shown in Example 5.</p>
-
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
 	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
@@ -271,8 +275,6 @@
 </code></pre></div></div>
 <p><strong>Example 5: Range for message until the channel is closed.</strong></p>
 
-<p>We should not close a channel before sending a message to it, as demonstrated in Example 6. Doing so will cause a deadlock in the system.</p>
-
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">(){</span>
   <span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
 		<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">1</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
@@ -282,8 +284,6 @@
 <span class="p">}</span>  
 </code></pre></div></div>
 <p><strong>Example 6: Closing a channel prematurely.</strong></p>
-
-<p>A useful use case for an unbuffered channel is to enable synchronized operations across goroutines, as shown in Example 7. The channel is used to signal two goroutines to end their loops.</p>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">q</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{})</span>
 	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
@@ -310,6 +310,10 @@
 
 <p>One issue with a buffered channel occurs when you attempt to send a message to a channel that is already full, which causes an error. Example 8 illustrates this problem.</p>
 
+<p>An approach to prevent pushing to a full buffered channel is to use the select statement, as demonstrated in Example 9.</p>
+
+<p>Buffered channels are used to decouple operations between Goroutines.</p>
+
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
 	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span> <span class="c">// Create a channel with two slices of strings</span>
 	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Channel capacity: %v Length: %v</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="nb">cap</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
@@ -328,8 +332,6 @@
 </code></pre></div></div>
 <p><strong>Example 8: Panic when you try to a full buffered channel.</strong></p>
 
-<p>An approach to prevent pushing to a full buffered channel is to use the select statement, as demonstrated in Example 9.</p>
-
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
 	<span class="c">// Create a buffered channel with a capacity of 2</span>
 	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span>
@@ -347,8 +349,6 @@
 	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
 </code></pre></div></div>
 <p><strong>Example 9: Using select to safeguard against pushing to a full channel.</strong></p>
-
-<p>Buffered channels are used to decouple operations between Goroutines.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 

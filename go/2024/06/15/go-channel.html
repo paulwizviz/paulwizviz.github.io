@@ -146,16 +146,13 @@
 
 <h2 id="what-is-a-go-channel">What is a Go Channel?</h2>
 
-<p>One approach for two or more concurrent operations to communicate is to access shared memory. To avoid race conditions in this communication model, mechanisms like mutex locks are required. When a process accesses the memory, a lock is placed on the shared memory to prevent other processes from accessing it. Once the lock is removed, access to the shared memory by all processes is permitted. This ensures that the processes do not override each other’s actions out of sequence.</p>
+<p>One approach for two or more concurrent operations to communicate with each other is to use shared memory. However, shared memory has it challenge; namely, race condition. Mechanisms like mutex locks are used to prevent race condition. When a process accesses the memory, a lock is placed on the shared memory to prevent other processes from accessing it. Once the lock is removed, access to the shared memory by all processes is permitted. This ensures that the processes do not override shared memory out of sequence. Unfortunately this approach negate the benefits of concurrency.</p>
 
-<p>Go channels offer an alternative way of enabling concurrent processes to synchronize communications. In this model, a process sends data via a channel to other processes that receive it. Synchronization is achieved by ensuring that there are both senders and receivers to send and receive messages, respectively. Additionally, senders and receivers must not send or consume more messages than are available.</p>
+<p>Go channels offer an alternative way of enabling concurrent processes to communicate in synchronized way without losing the benefit of concurrency. A Go channel works like a pipe connecting a sender of messages to a receiver. There are two types of channels: unbuffered and buffered. Let’s examine these in detail.</p>
 
-<p>There are two types of channels: unbuffered and buffered. Before we examine these two types in detail, consider Example 1, which uses an unbuffered channel, and Example 2, which uses a buffered channel. Questions:</p>
+<h2 id="unbuffered-channel">Unbuffered Channel</h2>
 
-<ul>
-  <li>Why does Example 1 result in a synchronization error?</li>
-  <li>Why does Example 2 generate no error?</li>
-</ul>
+<p>Example 1 illustrates a use case using unbuffered channel. However, this example results in a deadlock. In this example, the channel operates in the main routine. A channel <code class="language-plaintext highlighter-rouge">c</code> is created. A message is sent to the channel <code class="language-plaintext highlighter-rouge">c &lt;-</code> before a receiver <code class="language-plaintext highlighter-rouge">&lt;-c</code> is instantiated. This is analogous to water sent to a pipe with nothing to collect the water causing leakages. In our example the main routine to panic report a deadlock.</p>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
 
@@ -171,70 +168,40 @@
 </code></pre></div></div>
 <p><strong>Example 1 - Unbuffered Channel</strong></p>
 
-<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
-
-<span class="k">import</span> <span class="s">"fmt"</span>
-
-<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-
-	<span class="c">// Create a buffered channel with a capacity of one</span>
-	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
-
-	<span class="c">// Push a message to a buffered channel</span>
-	<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
-
-  <span class="c">// Consume data</span>
-	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span>
-<span class="p">}</span>
-</code></pre></div></div>
-<p><strong>Example 2 - Buffered channel</strong></p>
-
-<h2 id="unbuffered-channel">Unbuffered Channel</h2>
-
-<p>Let’s revisit Example 1. As mentioned earlier, a Go channel must have both a sender and a receiver. For an unbuffered channel, the sender must not send any message without a receiver being ready. In the case of Example 1, a message is sent to the channel before a receiver (i.e., &lt;-c) is available, causing a deadlock error. Note that in this example, messages are sent to channels within the same main routine, leaving no time for the receiving channel to activate.</p>
-
-<p>We can fix this problem by having the sender run in a separate goroutine, as shown in Example 3.</p>
-
-<p>In practice, we often find ourselves in situations where the receiver is unaware of the number of messages sent by the sender, as illustrated in Example 4. This example uses the <code class="language-plaintext highlighter-rouge">close</code> operation to signal that the channel cannot receive any more messages.</p>
-
-<p>You can also use the range operator to detect closed channels, as shown in Example 5.</p>
-
-<p>We should not close a channel before sending a message to it, as demonstrated in Example 6. Doing so will cause a deadlock in the system.</p>
-
-<p>A useful use case for an unbuffered channel is to enable synchronized operations across goroutines, as shown in Example 7. The channel is used to signal two goroutines to end their loops.</p>
+<p>We fix this problem by having the sender run in a separate goroutine, as shown in Example 2.
+Whilst the goroutine is scheduled for execution, the receiver <code class="language-plaintext highlighter-rouge">&lt;-c</code> is instantiated and is
+ready to recieve message. Hence, no deadlock.</p>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
 
-<span class="k">import</span> <span class="p">(</span>
-	<span class="s">"fmt"</span>
-	<span class="s">"time"</span>
-<span class="p">)</span>
-
 <span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
 
-  <span class="c">// Create an unbufferred channel</span>
-	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
+  	<span class="c">// Create an unbufferred channel</span>
+  	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
 
-  <span class="c">// Initiate a Go routine and goes to sleep</span>
-  <span class="c">// It hands off to the main routine.</span>
+  	<span class="c">// Schedule a goroutine and hands off to the main routine immediately</span>
 	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">c</span> <span class="k">chan</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
 		<span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 		<span class="k">for</span> <span class="p">{</span>
-			<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">10</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
-      <span class="c">// Hello is send to channel after 10 second.</span>
 			<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
 			<span class="k">break</span>
 		<span class="p">}</span>
 	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
 
-  <span class="c">// The main routine is blocked until the channel receives a message</span>
+  	<span class="c">// The main routine is blocked until the channel receives a message</span>
 	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span> 
 <span class="p">}</span>
 </code></pre></div></div>
-<p><strong>Example 3: Running sender in a Go routine.</strong></p>
+<p><strong>Example 2: Schedule a sender in a goroutine.</strong></p>
+
+<p>In practice, we often find ourselves in situations where the receiver is unaware of the number of messages sent by the sender, as illustrated in Example 3. This example uses the <code class="language-plaintext highlighter-rouge">close</code> operation to signal that the channel cannot receive any more messages. At the receiver end verify that the channel is <code class="language-plaintext highlighter-rouge">close</code>.</p>
+
+<p>However, we should not close a channel before sending a message to it, as in Example 4. Doing so results in a deadlock panic. It is a good practice that channels should only be <code class="language-plaintext highlighter-rouge">close</code> by the sender routine.</p>
+
+<p>An alternative approach to detecting <code class="language-plaintext highlighter-rouge">close</code> channel is ranging the receiver channel as shown in Example 5.</p>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-  <span class="c">// Create an unbuffered channel</span>
+  	<span class="c">// Create an unbuffered channel</span>
 	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
 
 	<span class="c">// Goroutine execute and handover to main routine</span>
@@ -259,7 +226,19 @@
 	<span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div></div>
-<p><strong>Example 4: Check for closed channel.</strong></p>
+<p><strong>Example 3: Check for closed channel.</strong></p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">(){</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
+	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
+		<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">1</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
+		<span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
+	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+	<span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+	<span class="o">&lt;-</span><span class="n">c</span>
+<span class="p">}</span>  
+</code></pre></div></div>
+<p><strong>Example 4: Closing a channel prematurely.</strong></p>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">)</span>
 	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
@@ -275,26 +254,18 @@
 </code></pre></div></div>
 <p><strong>Example 5: Range for message until the channel is closed.</strong></p>
 
-<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">(){</span>
-  <span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
-		<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">1</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
-		<span class="n">ch</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
-	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
-	<span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> 
-<span class="p">}</span>  
-</code></pre></div></div>
-<p><strong>Example 6: Closing a channel prematurely.</strong></p>
+<p>A proper use case for an unbuffered channel is to facilitate synchronized operations across goroutines, as shown in Example 6. The channel is used to signal two goroutines to end their loops.</p>
 
-<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="n">q</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{})</span>
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  	<span class="n">sig</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="k">struct</span><span class="p">{})</span>
 	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span><span class="o">&lt;-</span> <span class="kt">string</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">for</span><span class="p">{</span>
-      <span class="c">// Do something until stop</span>
-    <span class="p">}</span>
+    	<span class="k">for</span><span class="p">{</span>
+      		<span class="c">// Do something until end</span>
+    	<span class="p">}</span>
 		<span class="c">// We send an arbitrary signal</span>
-		<span class="n">q</span> <span class="o">&lt;-</span> <span class="k">struct</span><span class="p">{}{}</span>
-	<span class="p">}(</span><span class="n">q</span><span class="p">)</span>
+		<span class="n">ch</span> <span class="o">&lt;-</span> <span class="k">struct</span><span class="p">{}{}</span>
+	<span class="p">}(</span><span class="n">sig</span><span class="p">)</span>
 <span class="n">loop</span><span class="o">:</span>
-  <span class="k">for</span> <span class="p">{</span>
+  	<span class="k">for</span> <span class="p">{</span>
 		<span class="c">// </span>
 		<span class="k">select</span> <span class="p">{</span>
 		<span class="k">case</span> <span class="o">&lt;-</span><span class="n">q</span><span class="o">:</span>
@@ -302,17 +273,31 @@
 		<span class="p">}</span>
 	<span class="p">}</span>
 </code></pre></div></div>
-<p><strong>Example 7: Using unbuffered channel to synchronised Go routines.</strong></p>
+<p><strong>Example 6: Using unbuffered channel to synchronised Go routines.</strong></p>
 
 <h2 id="buffered-channel">Buffered Channel</h2>
 
-<p>Let’s revisit Example 2. The reason this does not result in an error is because the buffered channel can hold one message. When the channel has reached its capacity, the routine is blocked until a receiver is available.</p>
+<p>A buffered channel includes a buffer at the sender end. You have to fill out the buffer before any message is sent to the channel. In Example 7, we have a channel in the main routine. A message is sent to the channel but it is held in the buffer, long enough for the receiver to instantiate and drain the message. Hence, unlike Example 1, this does not result in a deadlock.</p>
 
-<p>One issue with a buffered channel occurs when you attempt to send a message to a channel that is already full, which causes an error. Example 8 illustrates this problem.</p>
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
 
-<p>An approach to prevent pushing to a full buffered channel is to use the select statement, as demonstrated in Example 9.</p>
+	<span class="c">// Create a buffered channel with a capacity of one</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
 
-<p>Buffered channels are used to decouple operations between Goroutines.</p>
+	<span class="c">// Push a message to a buffered channel</span>
+	<span class="n">c</span> <span class="o">&lt;-</span> <span class="s">"Hello"</span>
+
+  	<span class="c">// Consume data</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 7 - Buffered channel</strong></p>
+
+<p>If you attempted to send messages to a buffered channel that is already full and there is no receiver, you will get a deadlock as illustrated in Example 8. If you have a receiver, as shown in Example 9, and the buffer is full, additional message send to the sender will be blocked, until receiver has drained the channel.</p>
+
+<p>You can determine if senders has no more messages to send via <code class="language-plaintext highlighter-rouge">close</code> signal and range similar to Example 3 and Example 5.</p>
+
+<p>Buffered channels are typically used to decouple operations between goroutines.</p>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
 	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span> <span class="c">// Create a channel with two slices of strings</span>
@@ -333,22 +318,23 @@
 <p><strong>Example 8: Panic when you try to a full buffered channel.</strong></p>
 
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
-	<span class="c">// Create a buffered channel with a capacity of 2</span>
 	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span>
 	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
-		<span class="k">defer</span> <span class="nb">close</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-		<span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="m">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="m">10</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">{</span>
-			<span class="k">select</span> <span class="p">{</span>
-			<span class="k">case</span> <span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">i</span><span class="o">:</span> <span class="c">// Push when channel is not full</span>
-				<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Pushing %v to channel</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-			<span class="k">default</span><span class="o">:</span>
-				<span class="c">// This is called when the channel buffer is full.</span>
-				<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Don't push %v to channel</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-			<span class="p">}</span>
-		<span class="p">}</span>
+		<span class="n">ch</span> <span class="o">&lt;-</span> <span class="m">1</span>
+		<span class="n">ch</span> <span class="o">&lt;-</span> <span class="m">2</span>
+		<span class="n">ch</span> <span class="o">&lt;-</span> <span class="m">3</span> <span class="c">// This is blocked until the buffer is drained</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"End of goroutine"</span><span class="p">)</span>
 	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+	<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">10</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span> <span class="c">// Main routine goes to sleep allowing the receiver to fill.</span>
+	<span class="c">// Drain the first two messages.</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"First message: "</span><span class="p">,</span> <span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Second message: "</span><span class="p">,</span> <span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span>
+	<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">10</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Second</span><span class="p">)</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Third message: "</span><span class="p">,</span> <span class="o">&lt;-</span><span class="n">c</span><span class="p">)</span> <span class="c">// Pull more message after sleep.</span>
+
+<span class="p">}</span>
 </code></pre></div></div>
-<p><strong>Example 9: Using select to safeguard against pushing to a full channel.</strong></p>
+<p><strong>Example 9: Blocked receiver.</strong></p>
 
 <h2 id="conclusion">Conclusion</h2>
 

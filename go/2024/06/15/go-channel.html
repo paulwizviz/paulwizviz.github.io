@@ -297,8 +297,6 @@ ready to recieve message. Hence, no deadlock.</p>
 
 <p>You can determine if senders has no more messages to send via <code class="language-plaintext highlighter-rouge">close</code> signal and range similar to Example 3 and Example 5.</p>
 
-<p>Buffered channels are typically used to decouple operations between goroutines.</p>
-
 <div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
 	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">string</span><span class="p">,</span> <span class="m">2</span><span class="p">)</span> <span class="c">// Create a channel with two slices of strings</span>
 	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Channel capacity: %v Length: %v</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="nb">cap</span><span class="p">(</span><span class="n">c</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
@@ -335,6 +333,28 @@ ready to recieve message. Hence, no deadlock.</p>
 <span class="p">}</span>
 </code></pre></div></div>
 <p><strong>Example 9: Blocked receiver.</strong></p>
+
+<p>Buffered channels are typically used to decouple operations between goroutines. One use case is for aysnchronous processing as shown in Example 10.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">func</span> <span class="n">asyncProcessor</span><span class="p">()</span> <span class="k">chan</span> <span class="kt">int</span> <span class="p">{</span>
+	<span class="n">c</span> <span class="o">:=</span> <span class="nb">make</span><span class="p">(</span><span class="k">chan</span> <span class="kt">int</span><span class="p">,</span> <span class="m">1</span><span class="p">)</span>
+	<span class="k">go</span> <span class="k">func</span><span class="p">(</span><span class="n">ch</span> <span class="k">chan</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="o">:=</span> <span class="k">range</span> <span class="m">10</span> <span class="p">{</span>
+			<span class="n">ch</span> <span class="o">&lt;-</span> <span class="n">i</span>
+		<span class="p">}</span>
+		<span class="nb">close</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+	<span class="p">}(</span><span class="n">c</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">c</span>
+<span class="p">}</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="n">data</span> <span class="o">:=</span> <span class="n">asyncProcessor</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">d</span> <span class="o">:=</span> <span class="k">range</span> <span class="n">data</span> <span class="p">{</span>
+		<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+	<span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p><strong>Example 10: Asynchronous function.</strong></p>
 
 <h2 id="conclusion">Conclusion</h2>
 
